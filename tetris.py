@@ -95,6 +95,12 @@ class TetrisGame:
         '''
         pass
 
+    def is_over(self: Self) -> bool:
+        '''
+        Returns if the game is over or not
+        '''
+        pass
+
     def step(self: Self) -> None:
         '''
         Complete a next step
