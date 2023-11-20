@@ -20,7 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import pygame
 from typing import Self
 from enum import Enum
 from dataclasses import dataclass
@@ -73,7 +72,7 @@ class TetrisGame:
     '''
 
     def __init__(self: Self, frame_rate: float) -> None:
-        pass
+        self.frame_rate = frame_rate
 
     def get_board(self: Self) -> [[int]]:
         '''
@@ -106,19 +105,3 @@ class TetrisGame:
         Complete a next step
         '''
         pass
-
-
-def main():
-    pygame.init()
-    pygame.display.set_mode((200, 480))
-    pygame.display.set_caption('Tetris')
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                break
-        pygame.display.update()
-
-
-if __name__ == '__main__':
-    main()
