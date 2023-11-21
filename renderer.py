@@ -38,7 +38,7 @@ class Renderer:
     def setup(self: Self) -> None:
         pygame.init()
         self.screen = pygame.display.set_mode((16 * BLOCK_SIZE,
-                                               20 * BLOCK_SIZE))
+                                               21 * BLOCK_SIZE))
         self.rerender()
 
     def _render_block(self: Self, position: (int, int), color: int) -> None:
@@ -75,7 +75,7 @@ class Renderer:
                                        piece_grid[k // 2][k % 2])
             case 3:
                 for k in range(9):
-                    self._render_block((x_pos + k % 3 - 1, y_pos + k // 3 - 2),
+                    self._render_block((x_pos + k % 3 - 2, y_pos + k // 3 - 2),
                                        piece_grid[k // 3][k % 3])
             case 4:
                 for k in range(16):
@@ -98,7 +98,7 @@ class Renderer:
         self.screen.fill((0, 0, 0))
         self.screen.fill((50, 50, 50),
                          pygame.Rect(10 * BLOCK_SIZE, 0, 6 * BLOCK_SIZE,
-                                     20 * BLOCK_SIZE))
+                                     21 * BLOCK_SIZE))
         self._render_current_piece()
         self._render_next_pieces()
         self._render_hold_piece()

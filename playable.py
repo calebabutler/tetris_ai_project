@@ -33,14 +33,15 @@ class Playable:
 
     def run(self: Self) -> None:
         self.renderer.setup()
+        game = self.renderer.get_game()
         running = True
         while running:
+            game.step()
             self.renderer.rerender()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
                 if event.type == pygame.KEYDOWN:
-                    game = self.renderer.get_game()
                     match event.key:
                         case pygame.K_LEFT:
                             game.set_next_input(Input.MOVE_LEFT.value)
@@ -56,6 +57,7 @@ class Playable:
                             game.set_next_input(Input.C_ROTATE.value)
                         case pygame.K_x:
                             game.set_next_input(Input.CC_ROTATE.value)
+            pygame.time.wait(1000 // game.get_frame_rate())
 
 
 def main() -> None:

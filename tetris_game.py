@@ -194,13 +194,14 @@ class Color(Enum):
 
 
 class Input(Enum):
-    C_ROTATE = 0
-    CC_ROTATE = 1
-    MOVE_LEFT = 2
-    MOVE_RIGHT = 3
-    SOFT_DROP = 4
-    HARD_DROP = 5
-    HOLD = 6
+    NONE = 0
+    C_ROTATE = 1
+    CC_ROTATE = 2
+    MOVE_LEFT = 3
+    MOVE_RIGHT = 4
+    SOFT_DROP = 5
+    HARD_DROP = 6
+    HOLD = 7
 
 
 @dataclass
@@ -218,9 +219,13 @@ class TetrisGame:
     in a second (preferably, framerate can be set).
     '''
 
-    def __init__(self: Self, frame_rate: float) -> None:
+    def __init__(self: Self, frame_rate: int) -> None:
+        assert frame_rate % 30 == 0 and frame_rate > 0
         self.frame_rate = frame_rate
-        self.piece = Piece(6, (10, 10), 0)
+        self.piece = Piece(0, (5, 0), 0)
+        self.next_input = Input.NONE.value
+        self.level = 3
+        self.waited_frames = 0
 
     def get_board(self: Self) -> [[int]]:
         '''
@@ -229,6 +234,9 @@ class TetrisGame:
         when read by the AI.
         '''
         pass
+
+    def get_frame_rate(self: Self) -> int:
+        return self.frame_rate
 
     def get_current_piece(self: Self) -> Piece:
         '''
@@ -246,7 +254,18 @@ class TetrisGame:
         '''
         Sets next input that will be registered after the next step
         '''
-        match next_input:
+        self.next_input = next_input
+
+    def is_over(self: Self) -> bool:
+        '''
+        Returns if the game is over or not
+        '''
+        pass
+
+    def _process_next_input(self: Self) -> None:
+        match self.next_input:
+            case Input.NONE.value:
+                pass
             case Input.C_ROTATE.value:
                 self.piece.rotation += 1
                 self.piece.rotation %= 4
@@ -276,15 +295,23 @@ class TetrisGame:
             case Input.HOLD.value:
                 self.piece.kind += 1
                 self.piece.kind %= 7
+        self.next_input = Input.NONE.value
 
-    def is_over(self: Self) -> bool:
-        '''
-        Returns if the game is over or not
-        '''
-        pass
+    def _apply_gravity(self: Self) -> None:
+        G = (0.8 - (self.level - 1) * 0.007)**(self.level - 1)
+        G_frames = G * self.frame_rate
+        self.waited_frames += 1
+        if self.waited_frames >= G_frames:
+            self.waited_frames = 0
+            pos = self.piece.position
+            x = pos[0]
+            y = pos[1]
+            self.piece.position = (x, y + 1)
 
     def step(self: Self) -> None:
         '''
         Complete a next step
         '''
+        self._process_next_input()
+        self._apply_gravity()
         pass
