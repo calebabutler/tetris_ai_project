@@ -28,14 +28,31 @@ BLOCK_SIZE = 20
 
 
 class Renderer:
+    '''
+    This class is a companion to the TetrisGame class. It creates a pygame
+    window that visually shows the user the current state of a TetrisGame
+    object.
+    '''
 
     def __init__(self: Self, game: TetrisGame) -> None:
         self.game = game
 
     def get_game(self: Self) -> TetrisGame:
+        '''
+        Getter for game object
+        '''
         return self.game
 
+    def set_game(self: Self, game: TetrisGame) -> None:
+        '''
+        Setter for game object
+        '''
+        self.game = game
+
     def setup(self: Self) -> None:
+        '''
+        Run this function to render the first frame
+        '''
         pygame.init()
         self.screen = pygame.display.set_mode((16 * BLOCK_SIZE,
                                                30 * BLOCK_SIZE))
@@ -43,6 +60,9 @@ class Renderer:
         self.rerender()
 
     def rerender(self: Self) -> None:
+        '''
+        Run this function to render successive frames
+        '''
         self.screen.fill((0, 0, 0))
         self.screen.fill((50, 50, 50),
                          pygame.Rect(10 * BLOCK_SIZE, 0, 6 * BLOCK_SIZE,

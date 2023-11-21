@@ -215,10 +215,12 @@ class Piece:
 
 class TetrisGame:
     '''
-    This class should be self-contained; meaning it does not rely on pygame or
-    any other library. It should be automatable, meaning the user should be
-    able to set its own inputs or steps. There should be 60 steps (or updates)
-    in a second (preferably, framerate can be set).
+    This class holds all of the game logic for tetris, with no rendering logic
+    or input handling logic. This means, if you want to automate playing
+    tetris, you can use this class alone and just see the outcomes of the game
+    logic. Use the Renderer class with this class to both run the game logic
+    for the game and the rendering logic, with no input handling. See the
+    'playable.py' file for a simple example of how to implement input handling.
     '''
 
     def __init__(self: Self, frame_rate: int) -> None:
@@ -242,8 +244,8 @@ class TetrisGame:
     def get_board(self: Self) -> [[int]]:
         '''
         Returns current board. Board data structure: 2D array with color
-        information for the player, probably color information will be removed
-        when read by the AI.
+        information. The Color enum says which color correspond with which
+        int.
         '''
         return self.board
 
@@ -286,9 +288,16 @@ class TetrisGame:
         return new_board
 
     def get_frame_rate(self: Self) -> int:
+        '''
+        Return fixed frame rate
+        '''
         return self.frame_rate
 
     def get_shadow_piece(self: Self) -> Piece:
+        '''
+        Return piece information for the "shadow" of the current piece (that
+        is, the dark piece that shows you where the piece would land)
+        '''
         new_piece = copy.deepcopy(self.piece)
         while not self._has_collision(new_piece):
             x = new_piece.position[0]
@@ -301,19 +310,25 @@ class TetrisGame:
 
     def get_current_piece(self: Self) -> Piece:
         '''
-        Returns piece and position/rotation
+        Returns current piece information
         '''
         return self.piece
 
     def get_next_pieces(self: Self) -> [int]:
+        '''
+        Returns the kinds of the next 6 pieces
+        '''
         return self.piece_queue[:6]
 
     def get_hold_piece(self: Self) -> int:
+        '''
+        Returns the kind of the piece in hold
+        '''
         return self.hold_piece
 
     def set_next_input(self: Self, next_input: int) -> None:
         '''
-        Sets next input that will be registered after the next step
+        Sets next input that will be registered in the next step
         '''
         self.next_input = next_input
 
@@ -324,14 +339,20 @@ class TetrisGame:
         return self.is_game_over
 
     def get_level(self: Self) -> int:
+        '''
+        Returns current level
+        '''
         return self.level
 
     def get_score(self: Self) -> int:
+        '''
+        Returns current score
+        '''
         return self.level
 
     def step(self: Self) -> None:
         '''
-        Complete a next step
+        Run a 'step' (or frame) of the game
         '''
         if not self.is_game_over:
             self._process_next_input()
