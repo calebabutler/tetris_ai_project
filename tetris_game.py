@@ -228,12 +228,14 @@ class TetrisGame:
         self.level = 10
         self.waited_frames = 0
         self.piece_queue = []
-        self._generate_new_piece()
+        self.is_game_over = False
         self.board = []
         for i in range(40):
             self.board.append([])
             for j in range(10):
                 self.board[i].append(Color.BLANK.value)
+
+        self._generate_new_piece()
 
     def get_board(self: Self) -> [[int]]:
         '''
@@ -252,10 +254,10 @@ class TetrisGame:
         '''
         return self.piece
 
-    def get_next_pieces(self: Self) -> [Piece]:
-        pass
+    def get_next_pieces(self: Self) -> [int]:
+        return self.piece_queue[:6]
 
-    def get_hold_piece(self: Self) -> Piece:
+    def get_hold_piece(self: Self) -> int:
         pass
 
     def set_next_input(self: Self, next_input: int) -> None:
@@ -268,7 +270,7 @@ class TetrisGame:
         '''
         Returns if the game is over or not
         '''
-        pass
+        return self.is_game_over
 
     def _has_collision(self: Self, piece: Piece) -> bool:
         assert piece.kind >= 0 and piece.kind < len(pieces)
@@ -348,10 +350,12 @@ class TetrisGame:
             bag = list(range(7))
             random.shuffle(bag)
             self.piece_queue += bag
-        self.piece = Piece(
-                self.piece_queue.pop(0),
-                (5, 19),
-                0)
+        new_piece = Piece(self.piece_queue.pop(0), (5, 19), 0)
+        if self._has_collision(new_piece):
+            self.is_game_over = True
+            self.piece = Piece(0, (0, 2), 0)
+        else:
+            self.piece = new_piece
 
     def _lock_piece(self: Self) -> None:
         piece_size = len(pieces[self.piece.kind][0])
@@ -395,10 +399,24 @@ class TetrisGame:
             else:
                 self.piece = new_piece
 
+    def _clear_lines(self: Self) -> None:
+        for i in range(len(self.board)):
+            full = True
+            for j in range(len(self.board[i])):
+                if self.board[i][j] == Color.BLANK.value:
+                    full = False
+                    break
+            if full:
+                new_line = [0] * 10
+                self.board.pop(i)
+                self.board.insert(0, new_line)
+                self.level += 1
+
     def step(self: Self) -> None:
         '''
         Complete a next step
         '''
-        self._process_next_input()
-        self._apply_gravity()
-        pass
+        if not self.is_game_over:
+            self._process_next_input()
+            self._apply_gravity()
+            self._clear_lines()
