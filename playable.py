@@ -44,10 +44,10 @@ def main() -> None:
                     case pygame.K_RIGHT:
                         game.set_next_input(Input.MOVE_RIGHT.value)
                     case pygame.K_DOWN:
-                        game.set_next_input(Input.HARD_DROP.value)
-                    case pygame.K_UP:
                         game.set_next_input(Input.SOFT_DROP.value)
                     case pygame.K_SPACE:
+                        game.set_next_input(Input.HARD_DROP.value)
+                    case pygame.K_c:
                         game.set_next_input(Input.HOLD.value)
                     case pygame.K_z:
                         game.set_next_input(Input.C_ROTATE.value)
