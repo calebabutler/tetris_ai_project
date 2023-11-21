@@ -42,7 +42,8 @@ class Renderer:
         self.rerender()
 
     def _render_block(self: Self, position: (int, int), color: int) -> None:
-        rect = pygame.Rect(position[0] * BLOCK_SIZE, position[1] * BLOCK_SIZE,
+        rect = pygame.Rect(position[0] * BLOCK_SIZE,
+                           (position[1] - 19) * BLOCK_SIZE,
                            BLOCK_SIZE, BLOCK_SIZE)
         match color:
             case Color.BLANK.value:
@@ -92,7 +93,10 @@ class Renderer:
         pass
 
     def _render_board(self: Self) -> None:
-        pass
+        board = self.game.get_board()
+        for i in range(19, 40):
+            for j in range(10):
+                self._render_block((j, i), board[i][j])
 
     def rerender(self: Self) -> None:
         self.screen.fill((0, 0, 0))

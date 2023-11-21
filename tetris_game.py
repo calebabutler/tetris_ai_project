@@ -23,6 +23,7 @@
 from typing import Self
 from enum import Enum
 from dataclasses import dataclass
+import copy
 
 pieces = [
     [
@@ -222,10 +223,15 @@ class TetrisGame:
     def __init__(self: Self, frame_rate: int) -> None:
         assert frame_rate % 30 == 0 and frame_rate > 0
         self.frame_rate = frame_rate
-        self.piece = Piece(0, (5, 0), 0)
+        self.piece = Piece(0, (5, 19), 0)
         self.next_input = Input.NONE.value
-        self.level = 3
+        self.level = 6
         self.waited_frames = 0
+        self.board = []
+        for i in range(40):
+            self.board.append([])
+            for j in range(10):
+                self.board[i].append(Color.BLANK.value)
 
     def get_board(self: Self) -> [[int]]:
         '''
@@ -233,7 +239,7 @@ class TetrisGame:
         information for the player, probably color information will be removed
         when read by the AI.
         '''
-        pass
+        return self.board
 
     def get_frame_rate(self: Self) -> int:
         return self.frame_rate
@@ -262,51 +268,121 @@ class TetrisGame:
         '''
         pass
 
+    def _has_collision(self: Self, piece: Piece) -> bool:
+        assert piece.kind >= 0 and piece.kind < len(pieces)
+        piece_size = len(pieces[piece.kind][0])
+        x_pos = piece.position[0]
+        y_pos = piece.position[1]
+        piece_grid = pieces[piece.kind][piece.rotation]
+        match piece_size:
+            case 2:
+                for k in range(4):
+                    if piece_grid[k // 2][k % 2] != Color.BLANK.value:
+                        abs_x = x_pos + k % 2 - 1
+                        abs_y = y_pos + k // 2 - 1
+                        if abs_x < 0 or abs_x >= 10:
+                            return True
+                        if abs_y < 0 or abs_y >= 40:
+                            return True
+                        if self.board[abs_y][abs_x] != Color.BLANK.value:
+                            return True
+            case 3:
+                for k in range(9):
+                    if piece_grid[k // 3][k % 3] != Color.BLANK.value:
+                        abs_x = x_pos + k % 3 - 2
+                        abs_y = y_pos + k // 3 - 2
+                        if abs_x < 0 or abs_x >= 10:
+                            return True
+                        if abs_y < 0 or abs_y >= 40:
+                            return True
+                        if self.board[abs_y][abs_x] != Color.BLANK.value:
+                            return True
+            case 4:
+                for k in range(16):
+                    if piece_grid[k // 4][k % 4] != Color.BLANK.value:
+                        abs_x = x_pos + k % 4 - 2
+                        abs_y = y_pos + k // 4 - 2
+                        if abs_x < 0 or abs_x >= 10:
+                            return True
+                        if abs_y < 0 or abs_y >= 40:
+                            return True
+                        if self.board[abs_y][abs_x] != Color.BLANK.value:
+                            return True
+        return False
+
     def _process_next_input(self: Self) -> None:
+        new_piece = copy.deepcopy(self.piece)
         match self.next_input:
             case Input.NONE.value:
                 pass
             case Input.C_ROTATE.value:
-                self.piece.rotation += 1
-                self.piece.rotation %= 4
+                new_piece.rotation += 1
+                new_piece.rotation %= 4
             case Input.CC_ROTATE.value:
-                self.piece.rotation += 3
-                self.piece.rotation %= 4
+                new_piece.rotation += 3
+                new_piece.rotation %= 4
             case Input.MOVE_LEFT.value:
-                pos = self.piece.position
+                pos = new_piece.position
                 x = pos[0]
                 y = pos[1]
-                self.piece.position = (x - 1, y)
+                new_piece.position = (x - 1, y)
             case Input.MOVE_RIGHT.value:
-                pos = self.piece.position
+                pos = new_piece.position
                 x = pos[0]
                 y = pos[1]
-                self.piece.position = (x + 1, y)
+                new_piece.position = (x + 1, y)
             case Input.SOFT_DROP.value:
-                pos = self.piece.position
-                x = pos[0]
-                y = pos[1]
-                self.piece.position = (x, y - 1)
+                pass
             case Input.HARD_DROP.value:
-                pos = self.piece.position
-                x = pos[0]
-                y = pos[1]
-                self.piece.position = (x, y + 1)
+                pass
             case Input.HOLD.value:
-                self.piece.kind += 1
-                self.piece.kind %= 7
+                pass
+        if not self._has_collision(new_piece):
+            self.piece = new_piece
         self.next_input = Input.NONE.value
+
+    def _lock_piece(self: Self) -> None:
+        piece_size = len(pieces[self.piece.kind][0])
+        x_pos = self.piece.position[0]
+        y_pos = self.piece.position[1]
+        piece_grid = pieces[self.piece.kind][self.piece.rotation]
+        match piece_size:
+            case 2:
+                for k in range(4):
+                    if piece_grid[k // 2][k % 2] != Color.BLANK.value:
+                        abs_x = x_pos + k % 2 - 1
+                        abs_y = y_pos + k // 2 - 1
+                        self.board[abs_y][abs_x] = piece_grid[k // 2][k % 2]
+            case 3:
+                for k in range(9):
+                    if piece_grid[k // 3][k % 3] != Color.BLANK.value:
+                        abs_x = x_pos + k % 3 - 2
+                        abs_y = y_pos + k // 3 - 2
+                        self.board[abs_y][abs_x] = piece_grid[k // 3][k % 3]
+            case 4:
+                for k in range(16):
+                    if piece_grid[k // 4][k % 4] != Color.BLANK.value:
+                        abs_x = x_pos + k % 4 - 2
+                        abs_y = y_pos + k // 4 - 2
+                        self.board[abs_y][abs_x] = piece_grid[k // 4][k % 4]
+        self.piece = Piece(0, (5, 19), 0)
 
     def _apply_gravity(self: Self) -> None:
         G = (0.8 - (self.level - 1) * 0.007)**(self.level - 1)
         G_frames = G * self.frame_rate
         self.waited_frames += 1
         if self.waited_frames >= G_frames:
+            new_piece = copy.deepcopy(self.piece)
             self.waited_frames = 0
-            pos = self.piece.position
+            pos = new_piece.position
             x = pos[0]
             y = pos[1]
-            self.piece.position = (x, y + 1)
+            new_piece.position = (x, y + 1)
+            if self._has_collision(new_piece):
+                print('here?')
+                self._lock_piece()
+            else:
+                self.piece = new_piece
 
     def step(self: Self) -> None:
         '''
