@@ -239,9 +239,6 @@ class TetrisGame:
     def get_next_pieces(self: Self) -> [Piece]:
         pass
 
-    def set_hold_piece(self: Self, piece: Piece) -> None:
-        pass
-
     def get_hold_piece(self: Self) -> Piece:
         pass
 
@@ -249,7 +246,36 @@ class TetrisGame:
         '''
         Sets next input that will be registered after the next step
         '''
-        pass
+        match next_input:
+            case Input.C_ROTATE.value:
+                self.piece.rotation += 1
+                self.piece.rotation %= 4
+            case Input.CC_ROTATE.value:
+                self.piece.rotation += 3
+                self.piece.rotation %= 4
+            case Input.MOVE_LEFT.value:
+                pos = self.piece.position
+                x = pos[0]
+                y = pos[1]
+                self.piece.position = (x - 1, y)
+            case Input.MOVE_RIGHT.value:
+                pos = self.piece.position
+                x = pos[0]
+                y = pos[1]
+                self.piece.position = (x + 1, y)
+            case Input.SOFT_DROP.value:
+                pos = self.piece.position
+                x = pos[0]
+                y = pos[1]
+                self.piece.position = (x, y - 1)
+            case Input.HARD_DROP.value:
+                pos = self.piece.position
+                x = pos[0]
+                y = pos[1]
+                self.piece.position = (x, y + 1)
+            case Input.HOLD.value:
+                self.piece.kind += 1
+                self.piece.kind %= 7
 
     def is_over(self: Self) -> bool:
         '''

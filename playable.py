@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from tetris_game import TetrisGame
+from tetris_game import TetrisGame, Input
 from renderer import Renderer
 from typing import Self
 import pygame
@@ -40,40 +40,22 @@ class Playable:
                 if event.type == pygame.QUIT:
                     running = False
                 if event.type == pygame.KEYDOWN:
+                    game = self.renderer.get_game()
                     match event.key:
                         case pygame.K_LEFT:
-                            self.renderer.get_game().piece.rotation += 1
-                            self.renderer.get_game().piece.rotation %= 4
+                            game.set_next_input(Input.MOVE_LEFT.value)
                         case pygame.K_RIGHT:
-                            self.renderer.get_game().piece.rotation += 3
-                            self.renderer.get_game().piece.rotation %= 4
+                            game.set_next_input(Input.MOVE_RIGHT.value)
+                        case pygame.K_DOWN:
+                            game.set_next_input(Input.HARD_DROP.value)
+                        case pygame.K_UP:
+                            game.set_next_input(Input.SOFT_DROP.value)
                         case pygame.K_SPACE:
-                            self.renderer.get_game().piece.kind += 1
-                            self.renderer.get_game().piece.kind %= 7
-                        case pygame.K_w:
-                            pos = self.renderer.get_game().piece.position
-                            x = pos[0]
-                            y = pos[1]
-                            self.renderer.get_game().piece.position = (x,
-                                                                       y - 1)
-                        case pygame.K_s:
-                            pos = self.renderer.get_game().piece.position
-                            x = pos[0]
-                            y = pos[1]
-                            self.renderer.get_game().piece.position = (x,
-                                                                       y + 1)
-                        case pygame.K_a:
-                            pos = self.renderer.get_game().piece.position
-                            x = pos[0]
-                            y = pos[1]
-                            self.renderer.get_game().piece.position = (x - 1,
-                                                                       y)
-                        case pygame.K_d:
-                            pos = self.renderer.get_game().piece.position
-                            x = pos[0]
-                            y = pos[1]
-                            self.renderer.get_game().piece.position = (x + 1,
-                                                                       y)
+                            game.set_next_input(Input.HOLD.value)
+                        case pygame.K_z:
+                            game.set_next_input(Input.C_ROTATE.value)
+                        case pygame.K_x:
+                            game.set_next_input(Input.CC_ROTATE.value)
 
 
 def main() -> None:
