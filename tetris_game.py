@@ -24,6 +24,7 @@ from typing import Self
 from enum import Enum
 from dataclasses import dataclass
 import copy
+import random
 
 pieces = [
     [
@@ -223,10 +224,11 @@ class TetrisGame:
     def __init__(self: Self, frame_rate: int) -> None:
         assert frame_rate % 30 == 0 and frame_rate > 0
         self.frame_rate = frame_rate
-        self.piece = Piece(0, (5, 19), 0)
         self.next_input = Input.NONE.value
-        self.level = 6
+        self.level = 10
         self.waited_frames = 0
+        self.piece_queue = []
+        self._generate_new_piece()
         self.board = []
         for i in range(40):
             self.board.append([])
@@ -341,6 +343,16 @@ class TetrisGame:
             self.piece = new_piece
         self.next_input = Input.NONE.value
 
+    def _generate_new_piece(self: Self) -> None:
+        if len(self.piece_queue) <= 6:
+            bag = list(range(7))
+            random.shuffle(bag)
+            self.piece_queue += bag
+        self.piece = Piece(
+                self.piece_queue.pop(0),
+                (5, 19),
+                0)
+
     def _lock_piece(self: Self) -> None:
         piece_size = len(pieces[self.piece.kind][0])
         x_pos = self.piece.position[0]
@@ -365,7 +377,7 @@ class TetrisGame:
                         abs_x = x_pos + k % 4 - 2
                         abs_y = y_pos + k // 4 - 2
                         self.board[abs_y][abs_x] = piece_grid[k // 4][k % 4]
-        self.piece = Piece(0, (5, 19), 0)
+        self._generate_new_piece()
 
     def _apply_gravity(self: Self) -> None:
         G = (0.8 - (self.level - 1) * 0.007)**(self.level - 1)
@@ -379,7 +391,6 @@ class TetrisGame:
             y = pos[1]
             new_piece.position = (x, y + 1)
             if self._has_collision(new_piece):
-                print('here?')
                 self._lock_piece()
             else:
                 self.piece = new_piece
