@@ -285,6 +285,21 @@ class TetrisGame:
         '''
         return self.is_game_over
 
+    def get_level(self: Self) -> int:
+        return self.level
+
+    def get_score(self: Self) -> int:
+        return self.level
+
+    def step(self: Self) -> None:
+        '''
+        Complete a next step
+        '''
+        if not self.is_game_over:
+            self._process_next_input()
+            self._apply_gravity()
+            self._clear_lines()
+
     def _has_collision(self: Self, piece: Piece) -> bool:
         assert piece.kind >= 0 and piece.kind < len(pieces)
         piece_size = len(pieces[piece.kind][0])
@@ -446,12 +461,3 @@ class TetrisGame:
                 self.board.pop(i)
                 self.board.insert(0, new_line)
                 self.level += 1
-
-    def step(self: Self) -> None:
-        '''
-        Complete a next step
-        '''
-        if not self.is_game_over:
-            self._process_next_input()
-            self._apply_gravity()
-            self._clear_lines()

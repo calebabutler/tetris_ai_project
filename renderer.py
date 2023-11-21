@@ -39,7 +39,25 @@ class Renderer:
         pygame.init()
         self.screen = pygame.display.set_mode((16 * BLOCK_SIZE,
                                                30 * BLOCK_SIZE))
+        self.font = pygame.freetype.Font('LiberationSans-Regular.ttf', 12)
         self.rerender()
+
+    def rerender(self: Self) -> None:
+        self.screen.fill((0, 0, 0))
+        self.screen.fill((50, 50, 50),
+                         pygame.Rect(10 * BLOCK_SIZE, 0, 6 * BLOCK_SIZE,
+                                     30 * BLOCK_SIZE))
+        self.screen.fill((50, 50, 50),
+                         pygame.Rect(0, 0, 10 * BLOCK_SIZE, 9 * BLOCK_SIZE))
+        self._render_level()
+        self._render_score()
+        self._render_game_over()
+        self._render_shadow_piece()
+        self._render_current_piece()
+        self._render_next_pieces()
+        self._render_hold_piece()
+        self._render_board()
+        pygame.display.flip()
 
     def _render_block(self: Self, position: (int, int), color: int,
                       on_board: bool, alpha: int = 0) -> None:
@@ -113,16 +131,15 @@ class Renderer:
             for j in range(10):
                 self._render_block((j, i), board[i][j], True)
 
-    def rerender(self: Self) -> None:
-        self.screen.fill((0, 0, 0))
-        self.screen.fill((50, 50, 50),
-                         pygame.Rect(10 * BLOCK_SIZE, 0, 6 * BLOCK_SIZE,
-                                     30 * BLOCK_SIZE))
-        self.screen.fill((50, 50, 50),
-                         pygame.Rect(0, 0, 10 * BLOCK_SIZE, 9 * BLOCK_SIZE))
-        self._render_shadow_piece()
-        self._render_current_piece()
-        self._render_next_pieces()
-        self._render_hold_piece()
-        self._render_board()
-        pygame.display.flip()
+    def _render_level(self: Self) -> None:
+        self.font.render_to(self.screen, (10, 10),
+                            f'Level: {self.game.get_level()}', (255, 255, 255))
+
+    def _render_score(self: Self) -> None:
+        self.font.render_to(self.screen, (10, 28),
+                            f'Score: {self.game.get_score()}', (255, 255, 255))
+
+    def _render_game_over(self: Self) -> None:
+        self.font.render_to(self.screen, (10, 46),
+                            f'Game over?: {self.game.is_over()}',
+                            (255, 255, 255))
