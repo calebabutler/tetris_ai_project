@@ -227,6 +227,8 @@ class TetrisGame:
         self.next_input = Input.NONE.value
         self.level = 10
         self.waited_frames = 0
+        self.hold_piece = -1
+        self.can_hold = True
         self.piece_queue = []
         self.is_game_over = False
         self.board = []
@@ -234,7 +236,6 @@ class TetrisGame:
             self.board.append([])
             for j in range(10):
                 self.board[i].append(Color.BLANK.value)
-
         self._generate_new_piece()
 
     def get_board(self: Self) -> [[int]]:
@@ -258,7 +259,7 @@ class TetrisGame:
         return self.piece_queue[:6]
 
     def get_hold_piece(self: Self) -> int:
-        pass
+        return self.hold_piece
 
     def set_next_input(self: Self, next_input: int) -> None:
         '''
@@ -340,22 +341,36 @@ class TetrisGame:
             case Input.HARD_DROP.value:
                 pass
             case Input.HOLD.value:
-                pass
+                if self.can_hold:
+                    if self.hold_piece >= 0:
+                        tmp = self.piece.kind
+                        self._generate_new_piece(self.hold_piece)
+                        self.hold_piece = tmp
+                    else:
+                        self.hold_piece = self.piece.kind
+                        self._generate_new_piece()
+                    self.can_hold = False
+                    self.next_input = Input.NONE.value
+                    return
         if not self._has_collision(new_piece):
             self.piece = new_piece
         self.next_input = Input.NONE.value
 
-    def _generate_new_piece(self: Self) -> None:
+    def _generate_new_piece(self: Self, specific_kind: int = -1) -> None:
         if len(self.piece_queue) <= 6:
             bag = list(range(7))
             random.shuffle(bag)
             self.piece_queue += bag
-        new_piece = Piece(self.piece_queue.pop(0), (5, 19), 0)
+        if specific_kind < 0:
+            new_piece = Piece(self.piece_queue.pop(0), (5, 19), 0)
+        else:
+            new_piece = Piece(specific_kind, (5, 19), 0)
         if self._has_collision(new_piece):
             self.is_game_over = True
             self.piece = Piece(0, (0, 2), 0)
         else:
             self.piece = new_piece
+            self.can_hold = True
 
     def _lock_piece(self: Self) -> None:
         piece_size = len(pieces[self.piece.kind][0])
