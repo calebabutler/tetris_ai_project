@@ -225,13 +225,14 @@ class TetrisGame:
         assert frame_rate % 30 == 0 and frame_rate > 0
         self.frame_rate = frame_rate
         self.next_input = Input.NONE.value
-        self.level = 10
+        self.level = 1
         self.waited_frames = 0
         self.hold_piece = -1
         self.can_hold = True
         self.piece_queue = []
         self.is_game_over = False
         self.board = []
+        self.soft_drop_mode = False
         for i in range(40):
             self.board.append([])
             for j in range(10):
@@ -337,7 +338,7 @@ class TetrisGame:
                 y = pos[1]
                 new_piece.position = (x + 1, y)
             case Input.SOFT_DROP.value:
-                pass
+                self.soft_drop_mode = not self.soft_drop_mode
             case Input.HARD_DROP.value:
                 pass
             case Input.HOLD.value:
@@ -400,6 +401,10 @@ class TetrisGame:
 
     def _apply_gravity(self: Self) -> None:
         G = (0.8 - (self.level - 1) * 0.007)**(self.level - 1)
+
+        if self.soft_drop_mode and G > 0.05:
+            G = 0.05
+
         G_frames = G * self.frame_rate
         self.waited_frames += 1
         if self.waited_frames >= G_frames:
