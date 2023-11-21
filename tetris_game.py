@@ -222,7 +222,7 @@ class TetrisGame:
     '''
 
     def __init__(self: Self, frame_rate: int) -> None:
-        assert frame_rate % 30 == 0 and frame_rate > 0
+        assert frame_rate > 0
         self.frame_rate = frame_rate
         self.next_input = Input.NONE.value
         self.level = 1
