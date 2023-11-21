@@ -22,49 +22,38 @@
 
 from tetris_game import TetrisGame, Input
 from renderer import Renderer
-from typing import Self
 import pygame
-
-
-class Playable:
-
-    def __init__(self: Self, renderer: Renderer) -> None:
-        self.renderer = renderer
-
-    def run(self: Self) -> None:
-        self.renderer.setup()
-        game = self.renderer.get_game()
-        running = True
-        while running:
-            game.step()
-            self.renderer.rerender()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.KEYDOWN:
-                    match event.key:
-                        case pygame.K_LEFT:
-                            game.set_next_input(Input.MOVE_LEFT.value)
-                        case pygame.K_RIGHT:
-                            game.set_next_input(Input.MOVE_RIGHT.value)
-                        case pygame.K_DOWN:
-                            game.set_next_input(Input.HARD_DROP.value)
-                        case pygame.K_UP:
-                            game.set_next_input(Input.SOFT_DROP.value)
-                        case pygame.K_SPACE:
-                            game.set_next_input(Input.HOLD.value)
-                        case pygame.K_z:
-                            game.set_next_input(Input.C_ROTATE.value)
-                        case pygame.K_x:
-                            game.set_next_input(Input.CC_ROTATE.value)
-            pygame.time.wait(1000 // game.get_frame_rate())
 
 
 def main() -> None:
     game = TetrisGame(60)
     renderer = Renderer(game)
-    playable = Playable(renderer)
-    playable.run()
+    renderer.setup()
+    running = True
+
+    while running:
+        game.step()
+        renderer.rerender()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                match event.key:
+                    case pygame.K_LEFT:
+                        game.set_next_input(Input.MOVE_LEFT.value)
+                    case pygame.K_RIGHT:
+                        game.set_next_input(Input.MOVE_RIGHT.value)
+                    case pygame.K_DOWN:
+                        game.set_next_input(Input.HARD_DROP.value)
+                    case pygame.K_UP:
+                        game.set_next_input(Input.SOFT_DROP.value)
+                    case pygame.K_SPACE:
+                        game.set_next_input(Input.HOLD.value)
+                    case pygame.K_z:
+                        game.set_next_input(Input.C_ROTATE.value)
+                    case pygame.K_x:
+                        game.set_next_input(Input.CC_ROTATE.value)
+        pygame.time.wait(1000 // game.get_frame_rate())
 
 
 if __name__ == '__main__':
