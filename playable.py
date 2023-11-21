@@ -35,9 +35,45 @@ class Playable:
         self.renderer.setup()
         running = True
         while running:
+            self.renderer.rerender()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                if event.type == pygame.KEYDOWN:
+                    match event.key:
+                        case pygame.K_LEFT:
+                            self.renderer.get_game().piece.rotation += 1
+                            self.renderer.get_game().piece.rotation %= 4
+                        case pygame.K_RIGHT:
+                            self.renderer.get_game().piece.rotation += 3
+                            self.renderer.get_game().piece.rotation %= 4
+                        case pygame.K_SPACE:
+                            self.renderer.get_game().piece.kind += 1
+                            self.renderer.get_game().piece.kind %= 7
+                        case pygame.K_w:
+                            pos = self.renderer.get_game().piece.position
+                            x = pos[0]
+                            y = pos[1]
+                            self.renderer.get_game().piece.position = (x,
+                                                                       y - 1)
+                        case pygame.K_s:
+                            pos = self.renderer.get_game().piece.position
+                            x = pos[0]
+                            y = pos[1]
+                            self.renderer.get_game().piece.position = (x,
+                                                                       y + 1)
+                        case pygame.K_a:
+                            pos = self.renderer.get_game().piece.position
+                            x = pos[0]
+                            y = pos[1]
+                            self.renderer.get_game().piece.position = (x - 1,
+                                                                       y)
+                        case pygame.K_d:
+                            pos = self.renderer.get_game().piece.position
+                            x = pos[0]
+                            y = pos[1]
+                            self.renderer.get_game().piece.position = (x + 1,
+                                                                       y)
 
 
 def main() -> None:

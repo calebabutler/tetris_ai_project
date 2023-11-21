@@ -32,13 +32,16 @@ class Renderer:
     def __init__(self: Self, game: TetrisGame) -> None:
         self.game = game
 
+    def get_game(self: Self) -> TetrisGame:
+        return self.game
+
     def setup(self: Self) -> None:
         pygame.init()
         self.screen = pygame.display.set_mode((16 * BLOCK_SIZE,
                                                20 * BLOCK_SIZE))
         self.rerender()
 
-    def render_block(self: Self, position: (int, int), color: int) -> None:
+    def _render_block(self: Self, position: (int, int), color: int) -> None:
         rect = pygame.Rect(position[0] * BLOCK_SIZE, position[1] * BLOCK_SIZE,
                            BLOCK_SIZE, BLOCK_SIZE)
         match color:
@@ -59,7 +62,7 @@ class Renderer:
             case Color.MAGENTA.value:
                 self.screen.fill((128, 0, 128), rect)
 
-    def render_piece(self: Self, piece: Piece) -> None:
+    def _render_piece(self: Self, piece: Piece) -> None:
         assert piece.kind >= 0 and piece.kind < len(pieces)
         piece_size = len(pieces[piece.kind][0])
         x_pos = piece.position[0]
@@ -68,27 +71,27 @@ class Renderer:
         match piece_size:
             case 2:
                 for k in range(4):
-                    self.render_block((x_pos + k % 2 - 1, y_pos + k // 2 - 1),
-                                      piece_grid[k // 2][k % 2])
+                    self._render_block((x_pos + k % 2 - 1, y_pos + k // 2 - 1),
+                                       piece_grid[k // 2][k % 2])
             case 3:
                 for k in range(9):
-                    self.render_block((x_pos + k % 3 - 1, y_pos + k // 3 - 2),
-                                      piece_grid[k // 3][k % 3])
+                    self._render_block((x_pos + k % 3 - 1, y_pos + k // 3 - 2),
+                                       piece_grid[k // 3][k % 3])
             case 4:
                 for k in range(16):
-                    self.render_block((x_pos + k % 4 - 2, y_pos + k // 4 - 2),
-                                      piece_grid[k // 4][k % 4])
+                    self._render_block((x_pos + k % 4 - 2, y_pos + k // 4 - 2),
+                                       piece_grid[k // 4][k % 4])
 
-    def render_current_piece(self: Self) -> None:
-        self.render_piece(self.game.get_current_piece())
+    def _render_current_piece(self: Self) -> None:
+        self._render_piece(self.game.get_current_piece())
 
-    def render_next_pieces(self: Self) -> None:
+    def _render_next_pieces(self: Self) -> None:
         pass
 
-    def render_hold_piece(self: Self) -> None:
+    def _render_hold_piece(self: Self) -> None:
         pass
 
-    def render_board(self: Self) -> None:
+    def _render_board(self: Self) -> None:
         pass
 
     def rerender(self: Self) -> None:
@@ -96,8 +99,8 @@ class Renderer:
         self.screen.fill((50, 50, 50),
                          pygame.Rect(10 * BLOCK_SIZE, 0, 6 * BLOCK_SIZE,
                                      20 * BLOCK_SIZE))
-        self.render_current_piece()
-        self.render_next_pieces()
-        self.render_hold_piece()
-        self.render_board()
+        self._render_current_piece()
+        self._render_next_pieces()
+        self._render_hold_piece()
+        self._render_board()
         pygame.display.flip()

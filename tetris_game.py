@@ -220,6 +220,7 @@ class TetrisGame:
 
     def __init__(self: Self, frame_rate: float) -> None:
         self.frame_rate = frame_rate
+        self.piece = Piece(6, (10, 10), 0)
 
     def get_board(self: Self) -> [[int]]:
         '''
@@ -233,7 +234,16 @@ class TetrisGame:
         '''
         Returns piece and position/rotation
         '''
-        return Piece(6, (10, 10), 0)
+        return self.piece
+
+    def get_next_pieces(self: Self) -> [Piece]:
+        pass
+
+    def set_hold_piece(self: Self, piece: Piece) -> None:
+        pass
+
+    def get_hold_piece(self: Self) -> Piece:
+        pass
 
     def set_next_input(self: Self, next_input: int) -> None:
         '''
