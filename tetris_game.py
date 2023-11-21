@@ -250,6 +250,17 @@ class TetrisGame:
     def get_frame_rate(self: Self) -> int:
         return self.frame_rate
 
+    def get_shadow_piece(self: Self) -> Piece:
+        new_piece = copy.deepcopy(self.piece)
+        while not self._has_collision(new_piece):
+            x = new_piece.position[0]
+            y = new_piece.position[1]
+            new_piece.position = (x, y + 1)
+        x = new_piece.position[0]
+        y = new_piece.position[1]
+        new_piece.position = (x, y - 1)
+        return new_piece
+
     def get_current_piece(self: Self) -> Piece:
         '''
         Returns piece and position/rotation
@@ -340,7 +351,10 @@ class TetrisGame:
             case Input.SOFT_DROP.value:
                 self.soft_drop_mode = not self.soft_drop_mode
             case Input.HARD_DROP.value:
-                pass
+                self.piece = self.get_shadow_piece()
+                self._lock_piece()
+                self.next_input = Input.NONE.value
+                return
             case Input.HOLD.value:
                 if self.can_hold:
                     if self.hold_piece >= 0:
@@ -372,6 +386,7 @@ class TetrisGame:
         else:
             self.piece = new_piece
             self.can_hold = True
+            self.soft_drop_mode = False
 
     def _lock_piece(self: Self) -> None:
         piece_size = len(pieces[self.piece.kind][0])

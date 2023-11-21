@@ -42,7 +42,7 @@ class Renderer:
         self.rerender()
 
     def _render_block(self: Self, position: (int, int), color: int,
-                      on_board: bool) -> None:
+                      on_board: bool, alpha: int = 0) -> None:
         if position[1] < 19 and on_board:
             return
         rect = pygame.Rect(position[0] * BLOCK_SIZE,
@@ -52,21 +52,22 @@ class Renderer:
             case Color.BLANK.value:
                 pass
             case Color.LIGHT_BLUE.value:
-                self.screen.fill((0, 255, 255), rect)
+                self.screen.fill((0, 255 - alpha, 255 - alpha), rect)
             case Color.DARK_BLUE.value:
-                self.screen.fill((0, 0, 255), rect)
+                self.screen.fill((0, 0, 255 - alpha), rect)
             case Color.ORANGE.value:
-                self.screen.fill((255, 127, 0), rect)
+                self.screen.fill((255 - alpha, 127 - alpha // 2, 0), rect)
             case Color.YELLOW.value:
-                self.screen.fill((255, 255, 0), rect)
+                self.screen.fill((255 - alpha, 255 - alpha, 0), rect)
             case Color.GREEN.value:
-                self.screen.fill((0, 255, 0), rect)
+                self.screen.fill((0, 255 - alpha, 0), rect)
             case Color.RED.value:
-                self.screen.fill((255, 0, 0), rect)
+                self.screen.fill((255 - alpha, 0, 0), rect)
             case Color.MAGENTA.value:
-                self.screen.fill((128, 0, 128), rect)
+                self.screen.fill((128 - alpha // 2, 0, 128 - alpha // 2), rect)
 
-    def _render_piece(self: Self, piece: Piece, on_board: bool) -> None:
+    def _render_piece(self: Self, piece: Piece, on_board: bool,
+                      alpha: int = 0) -> None:
         assert piece.kind >= 0 and piece.kind < len(pieces)
         piece_size = len(pieces[piece.kind][0])
         x_pos = piece.position[0]
@@ -76,18 +77,24 @@ class Renderer:
             case 2:
                 for k in range(4):
                     self._render_block((x_pos + k % 2 - 1, y_pos + k // 2 - 1),
-                                       piece_grid[k // 2][k % 2], on_board)
+                                       piece_grid[k // 2][k % 2], on_board,
+                                       alpha)
             case 3:
                 for k in range(9):
                     self._render_block((x_pos + k % 3 - 2, y_pos + k // 3 - 2),
-                                       piece_grid[k // 3][k % 3], on_board)
+                                       piece_grid[k // 3][k % 3], on_board,
+                                       alpha)
             case 4:
                 for k in range(16):
                     self._render_block((x_pos + k % 4 - 2, y_pos + k // 4 - 2),
-                                       piece_grid[k // 4][k % 4], on_board)
+                                       piece_grid[k // 4][k % 4], on_board,
+                                       alpha)
 
     def _render_current_piece(self: Self) -> None:
         self._render_piece(self.game.get_current_piece(), True)
+
+    def _render_shadow_piece(self: Self) -> None:
+        self._render_piece(self.game.get_shadow_piece(), True, 100)
 
     def _render_next_pieces(self: Self) -> None:
         next_pieces = self.game.get_next_pieces()
@@ -113,6 +120,7 @@ class Renderer:
                                      30 * BLOCK_SIZE))
         self.screen.fill((50, 50, 50),
                          pygame.Rect(0, 0, 10 * BLOCK_SIZE, 9 * BLOCK_SIZE))
+        self._render_shadow_piece()
         self._render_current_piece()
         self._render_next_pieces()
         self._render_hold_piece()
