@@ -247,6 +247,44 @@ class TetrisGame:
         '''
         return self.board
 
+    def get_simple_board(self: Self) -> [[int]]:
+        '''
+        This function returns a binary board (no color information) that is
+        21x10 with the current piece also included on the board.
+        '''
+        new_board = copy.deepcopy(self.board)
+        for i in range(19):
+            new_board.pop(0)
+        for i in range(21):
+            for j in range(10):
+                if new_board[i][j] != 0:
+                    new_board[i][j] = 1
+
+        piece_size = len(pieces[self.piece.kind][0])
+        x_pos = self.piece.position[0]
+        y_pos = self.piece.position[1]
+        piece_grid = pieces[self.piece.kind][self.piece.rotation]
+        match piece_size:
+            case 2:
+                for k in range(4):
+                    abs_x = x_pos + k % 2 - 1
+                    abs_y = y_pos + k // 2 - 1
+                    if abs_y >= 19 and piece_grid[k // 2][k % 2] != 0:
+                        new_board[abs_y - 19][abs_x] = 1
+            case 3:
+                for k in range(9):
+                    abs_x = x_pos + k % 3 - 2
+                    abs_y = y_pos + k // 3 - 2
+                    if abs_y >= 19 and piece_grid[k // 3][k % 3] != 0:
+                        new_board[abs_y - 19][abs_x] = 1
+            case 4:
+                for k in range(16):
+                    abs_x = x_pos + k % 4 - 2
+                    abs_y = y_pos + k // 4 - 2
+                    if abs_y >= 19 and piece_grid[k // 4][k % 4] != 0:
+                        new_board[abs_y - 19][abs_x] = 1
+        return new_board
+
     def get_frame_rate(self: Self) -> int:
         return self.frame_rate
 
