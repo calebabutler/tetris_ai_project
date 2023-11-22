@@ -183,6 +183,34 @@ pieces = [
     ],
 ]
 
+srs_table_clockwise = [
+    [(0, 0), (-1, 0), (-1, -1), (0, 2), (-1, 2)],   # L->0
+    [(0, 0), (-1, 0), (-1, 1), (0, -2), (-1, -2)],  # 0->R
+    [(0, 0), (1, 0), (1, -1), (0, 2), (1, 2)],      # R->2
+    [(0, 0), (1, 0), (1, 1), (0, -2), (1, -2)],     # 2->L
+]
+
+srs_table_counter_clockwise = [
+    [(0, 0), (1, 0), (1, 1), (0, 2), (1, 2)],       # R->0
+    [(0, 0), (-1, 0), (-1, 1), (0, -2), (-1, -2)],  # 2->R
+    [(0, 0), (-1, 0), (-1, -1), (0, 2), (-1, 2)],   # L->2
+    [(0, 0), (1, 0), (1, 1), (0, -2), (1, -2)],     # 0->L
+]
+
+srs_table_clockwise_I = [
+    [(0, 0), (1, 0), (-2, 0), (1, -2), (-2, 1)],  # L->0
+    [(0, 0), (-2, 0), (1, 0), (-2, -1), (1, 2)],  # 0->R
+    [(0, 0), (-1, 0), (2, 0), (-1, 2), (2, -1)],  # R->2
+    [(0, 0), (2, 0), (-1, 0), (2, 1), (-1, -2)],  # 2->L
+]
+
+srs_table_counter_clockwise_I = [
+    [(0, 0), (2, 0), (-1, 0), (2, 1), (-1, -2)],  # R->0
+    [(0, 0), (1, 0), (-2, 0), (1, -2), (-2, 1)],  # 2->R
+    [(0, 0), (-2, 0), (1, 0), (-2, -1), (1, 2)],  # L->2
+    [(0, 0), (-1, 0), (2, 0), (-1, 2), (2, -1)],  # 0->L
+]
+
 
 class Color(Enum):
     BLANK = 0
@@ -401,34 +429,66 @@ class TetrisGame:
                             return True
         return False
 
-    def _process_next_input(self: Self) -> None:
+    def _rotate(self: Self, is_clockwise: bool) -> None:
         new_piece = copy.deepcopy(self.piece)
+        if is_clockwise:
+            new_piece.rotation += 1
+        else:
+            new_piece.rotation += 3
+        new_piece.rotation %= 4
+
+        # Assign rotation table
+        if new_piece.kind == 0:
+            if is_clockwise:
+                rotation_table = srs_table_clockwise_I[new_piece.rotation]
+            else:
+                rotation_table = (
+                    srs_table_counter_clockwise_I[new_piece.rotation])
+        elif is_clockwise:
+            rotation_table = srs_table_clockwise[new_piece.rotation]
+        else:
+            rotation_table = (
+                    srs_table_counter_clockwise[new_piece.rotation])
+
+        for shift in rotation_table:
+            new_new_piece = copy.deepcopy(new_piece)
+            pos = new_new_piece.position
+            x = pos[0]
+            y = pos[1]
+            new_new_piece.position = (x + shift[0], y - shift[1])
+            if not self._has_collision(new_new_piece):
+                self.piece = new_new_piece
+                break
+
+    def _move_left_or_right(self: Self, is_right: bool) -> None:
+        new_piece = copy.deepcopy(self.piece)
+        pos = new_piece.position
+        x = pos[0]
+        y = pos[1]
+        if is_right:
+            new_piece.position = (x + 1, y)
+        else:
+            new_piece.position = (x - 1, y)
+        if not self._has_collision(new_piece):
+            self.piece = new_piece
+
+    def _process_next_input(self: Self) -> None:
         match self.next_input:
             case Input.NONE.value:
                 pass
             case Input.C_ROTATE.value:
-                new_piece.rotation += 1
-                new_piece.rotation %= 4
+                self._rotate(True)
             case Input.CC_ROTATE.value:
-                new_piece.rotation += 3
-                new_piece.rotation %= 4
+                self._rotate(False)
             case Input.MOVE_LEFT.value:
-                pos = new_piece.position
-                x = pos[0]
-                y = pos[1]
-                new_piece.position = (x - 1, y)
+                self._move_left_or_right(False)
             case Input.MOVE_RIGHT.value:
-                pos = new_piece.position
-                x = pos[0]
-                y = pos[1]
-                new_piece.position = (x + 1, y)
+                self._move_left_or_right(True)
             case Input.SOFT_DROP.value:
                 self.soft_drop_mode = not self.soft_drop_mode
             case Input.HARD_DROP.value:
                 self.piece = self.get_shadow_piece()
                 self._lock_piece()
-                self.next_input = Input.NONE.value
-                return
             case Input.HOLD.value:
                 if self.can_hold:
                     if self.hold_piece >= 0:
@@ -439,10 +499,6 @@ class TetrisGame:
                         self.hold_piece = self.piece.kind
                         self._generate_new_piece()
                     self.can_hold = False
-                    self.next_input = Input.NONE.value
-                    return
-        if not self._has_collision(new_piece):
-            self.piece = new_piece
         self.next_input = Input.NONE.value
 
     def _generate_new_piece(self: Self, specific_kind: int = -1) -> None:
