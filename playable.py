@@ -26,7 +26,7 @@ import pygame
 
 
 def main() -> None:
-    game = TetrisGame(60)
+    game = TetrisGame(30)
     renderer = Renderer(game)
     renderer.setup()
     running = True

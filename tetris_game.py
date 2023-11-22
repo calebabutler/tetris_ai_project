@@ -263,6 +263,8 @@ class TetrisGame:
         self.is_game_over = False
         self.board = []
         self.soft_drop_mode = False
+        self.lock_mode = False
+        self.lock_count = 0
         for i in range(40):
             self.board.append([])
             for j in range(10):
@@ -456,8 +458,12 @@ class TetrisGame:
             x = pos[0]
             y = pos[1]
             new_new_piece.position = (x + shift[0], y - shift[1])
-            if not self._has_collision(new_new_piece):
+            if not self._has_collision(new_new_piece) and self.lock_count < 15:
                 self.piece = new_new_piece
+                if self.lock_mode:
+                    self.lock_mode = False
+                    self.lock_count += 1
+                    self.waited_frames = 0
                 break
 
     def _move_left_or_right(self: Self, is_right: bool) -> None:
@@ -469,8 +475,12 @@ class TetrisGame:
             new_piece.position = (x + 1, y)
         else:
             new_piece.position = (x - 1, y)
-        if not self._has_collision(new_piece):
+        if not self._has_collision(new_piece) and self.lock_count < 15:
             self.piece = new_piece
+            if self.lock_mode:
+                self.lock_mode = False
+                self.lock_count += 1
+                self.waited_frames = 0
 
     def _process_next_input(self: Self) -> None:
         match self.next_input:
@@ -545,24 +555,30 @@ class TetrisGame:
         self._generate_new_piece()
 
     def _apply_gravity(self: Self) -> None:
-        G = (0.8 - (self.level - 1) * 0.007)**(self.level - 1)
-
-        if self.soft_drop_mode and G > 0.05:
-            G = 0.05
-
+        if self.lock_mode:
+            G = 0.5
+        else:
+            G = (0.8 - (self.level - 1) * 0.007)**(self.level - 1)
+            if self.soft_drop_mode and G > 0.05:
+                G = 0.05
         G_frames = G * self.frame_rate
         self.waited_frames += 1
         if self.waited_frames >= G_frames:
-            new_piece = copy.deepcopy(self.piece)
-            self.waited_frames = 0
-            pos = new_piece.position
-            x = pos[0]
-            y = pos[1]
-            new_piece.position = (x, y + 1)
-            if self._has_collision(new_piece):
+            if self.lock_mode:
                 self._lock_piece()
+                self.lock_count = 0
+                self.lock_mode = False
             else:
-                self.piece = new_piece
+                new_piece = copy.deepcopy(self.piece)
+                pos = new_piece.position
+                x = pos[0]
+                y = pos[1]
+                new_piece.position = (x, y + 1)
+                if self._has_collision(new_piece):
+                    self.lock_mode = True
+                else:
+                    self.piece = new_piece
+                    self.waited_frames = 0
 
     def _clear_lines(self: Self) -> None:
         for i in range(len(self.board)):
