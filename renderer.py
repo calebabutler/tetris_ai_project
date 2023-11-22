@@ -114,7 +114,7 @@ class Renderer:
         match piece_size:
             case 2:
                 for k in range(4):
-                    self._render_block((x_pos + k % 2 - 1, y_pos + k // 2 - 1),
+                    self._render_block((x_pos + k % 2 - 1, y_pos + k // 2 - 2),
                                        piece_grid[k // 2][k % 2], on_board,
                                        alpha)
             case 3:

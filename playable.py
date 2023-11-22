@@ -49,9 +49,9 @@ def main() -> None:
                         game.set_next_input(Input.HARD_DROP.value)
                     case pygame.K_c:
                         game.set_next_input(Input.HOLD.value)
-                    case pygame.K_z:
-                        game.set_next_input(Input.C_ROTATE.value)
                     case pygame.K_x:
+                        game.set_next_input(Input.C_ROTATE.value)
+                    case pygame.K_z:
                         game.set_next_input(Input.CC_ROTATE.value)
         pygame.time.wait(1000 // game.get_frame_rate())
 
