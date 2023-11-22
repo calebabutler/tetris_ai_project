@@ -256,6 +256,7 @@ class TetrisGame:
         self.frame_rate = frame_rate
         self.next_input = Input.NONE.value
         self.level = 1
+        self.score = 0
         self.waited_frames = 0
         self.hold_piece = -1
         self.can_hold = True
@@ -265,6 +266,7 @@ class TetrisGame:
         self.soft_drop_mode = False
         self.lock_mode = False
         self.lock_count = 0
+        self.had_tetris = False
         for i in range(40):
             self.board.append([])
             for j in range(10):
@@ -378,7 +380,7 @@ class TetrisGame:
         '''
         Returns current score
         '''
-        return self.level
+        return self.score
 
     def step(self: Self) -> None:
         '''
@@ -581,6 +583,7 @@ class TetrisGame:
                     self.waited_frames = 0
 
     def _clear_lines(self: Self) -> None:
+        lines_cleared = 0
         for i in range(len(self.board)):
             full = True
             for j in range(len(self.board[i])):
@@ -588,7 +591,26 @@ class TetrisGame:
                     full = False
                     break
             if full:
+                lines_cleared += 1
                 new_line = [0] * 10
                 self.board.pop(i)
                 self.board.insert(0, new_line)
-                self.level += 1
+        if lines_cleared == 1:
+            self.score += 1
+        elif lines_cleared == 2:
+            self.score += 3
+        elif lines_cleared == 3:
+            self.score += 5
+        elif lines_cleared == 4:
+            if self.had_tetris:
+                self.score += 12
+            else:
+                self.score += 8
+
+        if lines_cleared == 4:
+            self.had_tetris = True
+        else:
+            self.had_tetris = False
+
+        if self.score >= self.level * (self.level + 1) // 2 * 5:
+            self.level += 1
