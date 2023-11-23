@@ -254,6 +254,7 @@ class TetrisGame:
     def __init__(self: Self, frame_rate: int) -> None:
         assert frame_rate > 0
         self.frame_rate = frame_rate
+        self.successful_rotation = False
         self.next_input = Input.NONE.value
         self.level = 1
         self.score = 0
@@ -267,6 +268,7 @@ class TetrisGame:
         self.lock_mode = False
         self.lock_count = 0
         self.had_tetris = False
+        self.t_spin = False
         for i in range(40):
             self.board.append([])
             for j in range(10):
@@ -466,6 +468,7 @@ class TetrisGame:
                     self.lock_mode = False
                     self.lock_count += 1
                     self.waited_frames = 0
+                self.successful_rotation = True
                 break
 
     def _move_left_or_right(self: Self, is_right: bool) -> None:
@@ -494,13 +497,17 @@ class TetrisGame:
                 self._rotate(False)
             case Input.MOVE_LEFT.value:
                 self._move_left_or_right(False)
+                self.successful_rotation = False
             case Input.MOVE_RIGHT.value:
                 self._move_left_or_right(True)
+                self.successful_rotation = False
             case Input.SOFT_DROP.value:
                 self.soft_drop_mode = not self.soft_drop_mode
+                self.successful_rotation = False
             case Input.HARD_DROP.value:
                 self.piece = self.get_shadow_piece()
                 self._lock_piece()
+                self.successful_rotation = False
             case Input.HOLD.value:
                 if self.can_hold:
                     if self.hold_piece >= 0:
@@ -511,6 +518,7 @@ class TetrisGame:
                         self.hold_piece = self.piece.kind
                         self._generate_new_piece()
                     self.can_hold = False
+                self.successful_rotation = False
         self.next_input = Input.NONE.value
 
     def _generate_new_piece(self: Self, specific_kind: int = -1) -> None:
@@ -535,6 +543,26 @@ class TetrisGame:
         x_pos = self.piece.position[0]
         y_pos = self.piece.position[1]
         piece_grid = pieces[self.piece.kind][self.piece.rotation]
+        # Recognize t-spin
+        self.t_spin = False
+        if self.successful_rotation and self.piece.kind == 6:
+            occupied_squares = 0
+            for i in range(4):
+                abs_y = y_pos + 2*(i % 2) - 2
+                abs_x = x_pos + 2*(i // 2) - 2
+                if abs_y < 0:
+                    occupied_squares += 1
+                elif abs_y >= 40:
+                    occupied_squares += 1
+                elif abs_x < 0:
+                    occupied_squares += 1
+                elif abs_x >= 10:
+                    occupied_squares += 1
+                elif self.board[abs_y][abs_x] != Color.BLANK.value:
+                    occupied_squares += 1
+            if occupied_squares >= 3:
+                self.t_spin = True
+                print('T-spin!')
         match piece_size:
             case 2:
                 for k in range(4):
@@ -595,12 +623,26 @@ class TetrisGame:
                 new_line = [0] * 10
                 self.board.pop(i)
                 self.board.insert(0, new_line)
-        if lines_cleared == 1:
+        self._update_scores(lines_cleared)
+
+    def _update_scores(self: Self, lines_cleared: int) -> None:
+        if lines_cleared == 0 and self.t_spin:
             self.score += 1
+        elif lines_cleared == 1:
+            if self.t_spin:
+                self.score += 3
+            else:
+                self.score += 1
         elif lines_cleared == 2:
-            self.score += 3
+            if self.t_spin:
+                self.score += 7
+            else:
+                self.score += 3
         elif lines_cleared == 3:
-            self.score += 5
+            if self.t_spin:
+                self.score += 6
+            else:
+                self.score += 5
         elif lines_cleared == 4:
             if self.had_tetris:
                 self.score += 12
@@ -612,5 +654,6 @@ class TetrisGame:
         else:
             self.had_tetris = False
 
+        self.t_spin = False
         if self.score >= self.level * (self.level + 1) // 2 * 5:
             self.level += 1
