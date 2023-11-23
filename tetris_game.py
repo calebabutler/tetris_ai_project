@@ -562,7 +562,6 @@ class TetrisGame:
                     occupied_squares += 1
             if occupied_squares >= 3:
                 self.t_spin = True
-                print('T-spin!')
         match piece_size:
             case 2:
                 for k in range(4):
