@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 from tetris_game import TetrisGame, Piece, pieces, Color
-from typing import Self
 import pygame
 
 BLOCK_SIZE = 20
@@ -34,22 +33,22 @@ class Renderer:
     object.
     '''
 
-    def __init__(self: Self, game: TetrisGame) -> None:
+    def __init__(self, game: TetrisGame) -> None:
         self.game = game
 
-    def get_game(self: Self) -> TetrisGame:
+    def get_game(self) -> TetrisGame:
         '''
         Getter for game object
         '''
         return self.game
 
-    def set_game(self: Self, game: TetrisGame) -> None:
+    def set_game(self, game: TetrisGame) -> None:
         '''
         Setter for game object
         '''
         self.game = game
 
-    def setup(self: Self) -> None:
+    def setup(self) -> None:
         '''
         Run this function to render the first frame
         '''
@@ -59,7 +58,7 @@ class Renderer:
         self.font = pygame.freetype.Font('LiberationSans-Regular.ttf', 12)
         self.rerender()
 
-    def rerender(self: Self) -> None:
+    def rerender(self) -> None:
         '''
         Run this function to render successive frames
         '''
@@ -79,7 +78,7 @@ class Renderer:
         self._render_board()
         pygame.display.flip()
 
-    def _render_block(self: Self, position: (int, int), color: int,
+    def _render_block(self, position: (int, int), color: int,
                       on_board: bool, alpha: int = 0) -> None:
         if position[1] < 19 and on_board:
             return
@@ -104,7 +103,7 @@ class Renderer:
             case Color.MAGENTA.value:
                 self.screen.fill((128 - alpha // 2, 0, 128 - alpha // 2), rect)
 
-    def _render_piece(self: Self, piece: Piece, on_board: bool,
+    def _render_piece(self, piece: Piece, on_board: bool,
                       alpha: int = 0) -> None:
         assert piece.kind >= 0 and piece.kind < len(pieces)
         piece_size = len(pieces[piece.kind][0])
@@ -128,38 +127,38 @@ class Renderer:
                                        piece_grid[k // 4][k % 4], on_board,
                                        alpha)
 
-    def _render_current_piece(self: Self) -> None:
+    def _render_current_piece(self) -> None:
         self._render_piece(self.game.get_current_piece(), True)
 
-    def _render_shadow_piece(self: Self) -> None:
+    def _render_shadow_piece(self) -> None:
         self._render_piece(self.game.get_shadow_piece(), True, 100)
 
-    def _render_next_pieces(self: Self) -> None:
+    def _render_next_pieces(self) -> None:
         next_pieces = self.game.get_next_pieces()
         for i in range(len(next_pieces)):
             self._render_piece(Piece(next_pieces[i], (13, 13 + i * 4), 0),
                                False)
 
-    def _render_hold_piece(self: Self) -> None:
+    def _render_hold_piece(self) -> None:
         hold_piece = self.game.get_hold_piece()
         if hold_piece >= 0:
             self._render_piece(Piece(hold_piece, (13, 37), 0), False)
 
-    def _render_board(self: Self) -> None:
+    def _render_board(self) -> None:
         board = self.game.get_board()
         for i in range(19, 40):
             for j in range(10):
                 self._render_block((j, i), board[i][j], True)
 
-    def _render_level(self: Self) -> None:
+    def _render_level(self) -> None:
         self.font.render_to(self.screen, (10, 10),
                             f'Level: {self.game.get_level()}', (255, 255, 255))
 
-    def _render_score(self: Self) -> None:
+    def _render_score(self) -> None:
         self.font.render_to(self.screen, (10, 28),
                             f'Score: {self.game.get_score()}', (255, 255, 255))
 
-    def _render_game_over(self: Self) -> None:
+    def _render_game_over(self) -> None:
         self.font.render_to(self.screen, (10, 46),
                             f'Game over?: {self.game.is_over()}',
                             (255, 255, 255))

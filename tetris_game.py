@@ -20,7 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import Self
 from enum import Enum
 from dataclasses import dataclass
 import copy
@@ -251,7 +250,7 @@ class TetrisGame:
     'playable.py' file for a simple example of how to implement input handling.
     '''
 
-    def __init__(self: Self, frame_rate: int) -> None:
+    def __init__(self, frame_rate: int) -> None:
         assert frame_rate > 0
         self.frame_rate = frame_rate
         self.successful_rotation = False
@@ -275,7 +274,7 @@ class TetrisGame:
                 self.board[i].append(Color.BLANK.value)
         self._generate_new_piece()
 
-    def get_board(self: Self) -> [[int]]:
+    def get_board(self) -> [[int]]:
         '''
         Returns current board. Board data structure: 2D array with color
         information. The Color enum says which color correspond with which
@@ -283,7 +282,7 @@ class TetrisGame:
         '''
         return self.board
 
-    def get_simple_board(self: Self) -> [[int]]:
+    def get_simple_board(self) -> [[int]]:
         '''
         This function returns a binary board (no color information) that is
         21x10 with the current piece also included on the board.
@@ -321,13 +320,13 @@ class TetrisGame:
                         new_board[abs_y - 19][abs_x] = 1
         return new_board
 
-    def get_frame_rate(self: Self) -> int:
+    def get_frame_rate(self) -> int:
         '''
         Return fixed frame rate
         '''
         return self.frame_rate
 
-    def get_shadow_piece(self: Self) -> Piece:
+    def get_shadow_piece(self) -> Piece:
         '''
         Return piece information for the "shadow" of the current piece (that
         is, the dark piece that shows you where the piece would land)
@@ -342,49 +341,49 @@ class TetrisGame:
         new_piece.position = (x, y - 1)
         return new_piece
 
-    def get_current_piece(self: Self) -> Piece:
+    def get_current_piece(self) -> Piece:
         '''
         Returns current piece information
         '''
         return self.piece
 
-    def get_next_pieces(self: Self) -> [int]:
+    def get_next_pieces(self) -> [int]:
         '''
         Returns the kinds of the next 6 pieces
         '''
         return self.piece_queue[:6]
 
-    def get_hold_piece(self: Self) -> int:
+    def get_hold_piece(self) -> int:
         '''
         Returns the kind of the piece in hold
         '''
         return self.hold_piece
 
-    def set_next_input(self: Self, next_input: int) -> None:
+    def set_next_input(self, next_input: int) -> None:
         '''
         Sets next input that will be registered in the next step
         '''
         self.next_input = next_input
 
-    def is_over(self: Self) -> bool:
+    def is_over(self) -> bool:
         '''
         Returns if the game is over or not
         '''
         return self.is_game_over
 
-    def get_level(self: Self) -> int:
+    def get_level(self) -> int:
         '''
         Returns current level
         '''
         return self.level
 
-    def get_score(self: Self) -> int:
+    def get_score(self) -> int:
         '''
         Returns current score
         '''
         return self.score
 
-    def step(self: Self) -> None:
+    def step(self) -> None:
         '''
         Run a 'step' (or frame) of the game
         '''
@@ -393,7 +392,7 @@ class TetrisGame:
             self._apply_gravity()
             self._clear_lines()
 
-    def _has_collision(self: Self, piece: Piece) -> bool:
+    def _has_collision(self, piece: Piece) -> bool:
         assert piece.kind >= 0 and piece.kind < len(pieces)
         piece_size = len(pieces[piece.kind][0])
         x_pos = piece.position[0]
@@ -435,7 +434,7 @@ class TetrisGame:
                             return True
         return False
 
-    def _rotate(self: Self, is_clockwise: bool) -> None:
+    def _rotate(self, is_clockwise: bool) -> None:
         new_piece = copy.deepcopy(self.piece)
         if is_clockwise:
             new_piece.rotation += 1
@@ -471,7 +470,7 @@ class TetrisGame:
                 self.successful_rotation = True
                 break
 
-    def _move_left_or_right(self: Self, is_right: bool) -> None:
+    def _move_left_or_right(self, is_right: bool) -> None:
         new_piece = copy.deepcopy(self.piece)
         pos = new_piece.position
         x = pos[0]
@@ -487,7 +486,7 @@ class TetrisGame:
                 self.lock_count += 1
                 self.waited_frames = 0
 
-    def _process_next_input(self: Self) -> None:
+    def _process_next_input(self) -> None:
         match self.next_input:
             case Input.NONE.value:
                 pass
@@ -521,7 +520,7 @@ class TetrisGame:
                 self.successful_rotation = False
         self.next_input = Input.NONE.value
 
-    def _generate_new_piece(self: Self, specific_kind: int = -1) -> None:
+    def _generate_new_piece(self, specific_kind: int = -1) -> None:
         if len(self.piece_queue) <= 6:
             bag = list(range(7))
             random.shuffle(bag)
@@ -538,7 +537,7 @@ class TetrisGame:
             self.can_hold = True
             self.soft_drop_mode = False
 
-    def _lock_piece(self: Self) -> None:
+    def _lock_piece(self) -> None:
         piece_size = len(pieces[self.piece.kind][0])
         x_pos = self.piece.position[0]
         y_pos = self.piece.position[1]
@@ -583,7 +582,7 @@ class TetrisGame:
                         self.board[abs_y][abs_x] = piece_grid[k // 4][k % 4]
         self._generate_new_piece()
 
-    def _apply_gravity(self: Self) -> None:
+    def _apply_gravity(self) -> None:
         if self.lock_mode:
             G = 0.5
         else:
@@ -609,7 +608,7 @@ class TetrisGame:
                     self.piece = new_piece
                     self.waited_frames = 0
 
-    def _clear_lines(self: Self) -> None:
+    def _clear_lines(self) -> None:
         lines_cleared = 0
         for i in range(len(self.board)):
             full = True
@@ -624,7 +623,7 @@ class TetrisGame:
                 self.board.insert(0, new_line)
         self._update_scores(lines_cleared)
 
-    def _update_scores(self: Self, lines_cleared: int) -> None:
+    def _update_scores(self, lines_cleared: int) -> None:
         if lines_cleared == 0 and self.t_spin:
             self.score += 1
         elif lines_cleared == 1:
