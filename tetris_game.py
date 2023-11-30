@@ -506,6 +506,7 @@ class TetrisGame:
             case Input.HARD_DROP.value:
                 self.piece = self.get_shadow_piece()
                 self._lock_piece()
+                self.lock_mode = False
                 self.successful_rotation = False
             case Input.HOLD.value:
                 if self.can_hold:
