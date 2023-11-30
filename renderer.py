@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from tetris_game import TetrisGame, Piece, pieces, Color
+from tetris_game import TetrisGame, Piece, pieces, Color, Vector2x1
 import pygame
 
 BLOCK_SIZE = 20
@@ -78,12 +78,12 @@ class Renderer:
         self._render_board()
         pygame.display.flip()
 
-    def _render_block(self, position: (int, int), color: int,
+    def _render_block(self, position: Vector2x1, color: int,
                       on_board: bool, alpha: int = 0) -> None:
-        if position[1] < 19 and on_board:
+        if position.y < 19 and on_board:
             return
-        rect = pygame.Rect(position[0] * BLOCK_SIZE,
-                           (position[1] - 10) * BLOCK_SIZE,
+        rect = pygame.Rect(position.x * BLOCK_SIZE,
+                           (position.y - 10) * BLOCK_SIZE,
                            BLOCK_SIZE, BLOCK_SIZE)
         match color:
             case Color.BLANK.value:
@@ -107,25 +107,23 @@ class Renderer:
                       alpha: int = 0) -> None:
         assert piece.kind >= 0 and piece.kind < len(pieces)
         piece_size = len(pieces[piece.kind][0])
-        x_pos = piece.position[0]
-        y_pos = piece.position[1]
         piece_grid = pieces[piece.kind][piece.rotation]
         match piece_size:
             case 2:
                 for k in range(4):
-                    self._render_block((x_pos + k % 2 - 1, y_pos + k // 2 - 2),
-                                       piece_grid[k // 2][k % 2], on_board,
-                                       alpha)
+                    self._render_block(
+                            piece.position + Vector2x1(k % 2 - 1, k // 2 - 2),
+                            piece_grid[k // 2][k % 2], on_board, alpha)
             case 3:
                 for k in range(9):
-                    self._render_block((x_pos + k % 3 - 2, y_pos + k // 3 - 2),
-                                       piece_grid[k // 3][k % 3], on_board,
-                                       alpha)
+                    self._render_block(
+                            piece.position + Vector2x1(k % 3 - 2, k // 3 - 2),
+                            piece_grid[k // 3][k % 3], on_board, alpha)
             case 4:
                 for k in range(16):
-                    self._render_block((x_pos + k % 4 - 2, y_pos + k // 4 - 2),
-                                       piece_grid[k // 4][k % 4], on_board,
-                                       alpha)
+                    self._render_block(
+                            piece.position + Vector2x1(k % 4 - 2, k // 4 - 2),
+                            piece_grid[k // 4][k % 4], on_board, alpha)
 
     def _render_current_piece(self) -> None:
         self._render_piece(self.game.get_current_piece(), True)
@@ -136,19 +134,21 @@ class Renderer:
     def _render_next_pieces(self) -> None:
         next_pieces = self.game.get_next_pieces()
         for i in range(len(next_pieces)):
-            self._render_piece(Piece(next_pieces[i], (13, 13 + i * 4), 0),
+            self._render_piece(Piece(next_pieces[i],
+                                     Vector2x1(13, 13 + i * 4), 0),
                                False)
 
     def _render_hold_piece(self) -> None:
         hold_piece = self.game.get_hold_piece()
         if hold_piece >= 0:
-            self._render_piece(Piece(hold_piece, (13, 37), 0), False)
+            self._render_piece(Piece(hold_piece,
+                                     Vector2x1(13, 37), 0), False)
 
     def _render_board(self) -> None:
         board = self.game.get_board()
         for i in range(19, 40):
             for j in range(10):
-                self._render_block((j, i), board[i][j], True)
+                self._render_block(Vector2x1(j, i), board[i][j], True)
 
     def _render_level(self) -> None:
         self.font.render_to(self.screen, (10, 10),

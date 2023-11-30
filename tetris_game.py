@@ -234,9 +234,21 @@ class Input(Enum):
 
 
 @dataclass
+class Vector2x1:
+    x: int
+    y: int
+
+    def __add__(self, other):
+        return Vector2x1(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other):
+        return Vector2x1(self.x - other.x, self.y - other.y)
+
+
+@dataclass
 class Piece:
     kind: int
-    position: (int, int)
+    position: Vector2x1
     rotation: int
 
 
@@ -296,28 +308,26 @@ class TetrisGame:
                     new_board[i][j] = 1
 
         piece_size = len(pieces[self.piece.kind][0])
-        x_pos = self.piece.position[0]
-        y_pos = self.piece.position[1]
         piece_grid = pieces[self.piece.kind][self.piece.rotation]
         match piece_size:
             case 2:
                 for k in range(4):
-                    abs_x = x_pos + k % 2 - 1
-                    abs_y = y_pos + k // 2 - 2
-                    if abs_y >= 19 and piece_grid[k // 2][k % 2] != 0:
-                        new_board[abs_y - 19][abs_x] = 1
+                    board_pos = self.piece.position + Vector2x1(k % 2 - 1,
+                                                                k // 2 - 2)
+                    if board_pos.y >= 19 and piece_grid[k // 2][k % 2] != 0:
+                        new_board[board_pos.y - 19][board_pos.x] = 1
             case 3:
                 for k in range(9):
-                    abs_x = x_pos + k % 3 - 2
-                    abs_y = y_pos + k // 3 - 2
-                    if abs_y >= 19 and piece_grid[k // 3][k % 3] != 0:
-                        new_board[abs_y - 19][abs_x] = 1
+                    board_pos = self.piece.position + Vector2x1(k % 3 - 2,
+                                                                k // 3 - 2)
+                    if board_pos.y >= 19 and piece_grid[k // 3][k % 3] != 0:
+                        new_board[board_pos.y - 19][board_pos.x] = 1
             case 4:
                 for k in range(16):
-                    abs_x = x_pos + k % 4 - 2
-                    abs_y = y_pos + k // 4 - 2
-                    if abs_y >= 19 and piece_grid[k // 4][k % 4] != 0:
-                        new_board[abs_y - 19][abs_x] = 1
+                    board_pos = self.piece.position + Vector2x1(k % 4 - 2,
+                                                                k // 4 - 2)
+                    if board_pos.y >= 19 and piece_grid[k // 4][k % 4] != 0:
+                        new_board[board_pos.y - 19][board_pos.x] = 1
         return new_board
 
     def get_frame_rate(self) -> int:
@@ -333,12 +343,8 @@ class TetrisGame:
         '''
         new_piece = copy.deepcopy(self.piece)
         while not self._has_collision(new_piece):
-            x = new_piece.position[0]
-            y = new_piece.position[1]
-            new_piece.position = (x, y + 1)
-        x = new_piece.position[0]
-        y = new_piece.position[1]
-        new_piece.position = (x, y - 1)
+            new_piece.position += Vector2x1(0, 1)
+        new_piece.position += Vector2x1(0, -1)
         return new_piece
 
     def get_current_piece(self) -> Piece:
@@ -395,42 +401,43 @@ class TetrisGame:
     def _has_collision(self, piece: Piece) -> bool:
         assert piece.kind >= 0 and piece.kind < len(pieces)
         piece_size = len(pieces[piece.kind][0])
-        x_pos = piece.position[0]
-        y_pos = piece.position[1]
         piece_grid = pieces[piece.kind][piece.rotation]
         match piece_size:
             case 2:
                 for k in range(4):
                     if piece_grid[k // 2][k % 2] != Color.BLANK.value:
-                        abs_x = x_pos + k % 2 - 1
-                        abs_y = y_pos + k // 2 - 2
-                        if abs_x < 0 or abs_x >= 10:
+                        board_pos = piece.position + Vector2x1(k % 2 - 1,
+                                                               k // 2 - 2)
+                        if board_pos.x < 0 or board_pos.x >= 10:
                             return True
-                        if abs_y < 0 or abs_y >= 40:
+                        if board_pos.y < 0 or board_pos.y >= 40:
                             return True
-                        if self.board[abs_y][abs_x] != Color.BLANK.value:
+                        if (self.board[board_pos.y][board_pos.x]
+                                != Color.BLANK.value):
                             return True
             case 3:
                 for k in range(9):
                     if piece_grid[k // 3][k % 3] != Color.BLANK.value:
-                        abs_x = x_pos + k % 3 - 2
-                        abs_y = y_pos + k // 3 - 2
-                        if abs_x < 0 or abs_x >= 10:
+                        board_pos = piece.position + Vector2x1(k % 3 - 2,
+                                                               k // 3 - 2)
+                        if board_pos.x < 0 or board_pos.x >= 10:
                             return True
-                        if abs_y < 0 or abs_y >= 40:
+                        if board_pos.y < 0 or board_pos.y >= 40:
                             return True
-                        if self.board[abs_y][abs_x] != Color.BLANK.value:
+                        if (self.board[board_pos.y][board_pos.x]
+                                != Color.BLANK.value):
                             return True
             case 4:
                 for k in range(16):
                     if piece_grid[k // 4][k % 4] != Color.BLANK.value:
-                        abs_x = x_pos + k % 4 - 2
-                        abs_y = y_pos + k // 4 - 2
-                        if abs_x < 0 or abs_x >= 10:
+                        board_pos = piece.position + Vector2x1(k % 4 - 2,
+                                                               k // 4 - 2)
+                        if board_pos.x < 0 or board_pos.x >= 10:
                             return True
-                        if abs_y < 0 or abs_y >= 40:
+                        if board_pos.y < 0 or board_pos.y >= 40:
                             return True
-                        if self.board[abs_y][abs_x] != Color.BLANK.value:
+                        if (self.board[board_pos.y][board_pos.x]
+                                != Color.BLANK.value):
                             return True
         return False
 
@@ -457,10 +464,7 @@ class TetrisGame:
 
         for shift in rotation_table:
             new_new_piece = copy.deepcopy(new_piece)
-            pos = new_new_piece.position
-            x = pos[0]
-            y = pos[1]
-            new_new_piece.position = (x + shift[0], y - shift[1])
+            new_new_piece.position += Vector2x1(shift[0], -shift[1])
             if not self._has_collision(new_new_piece) and self.lock_count < 15:
                 self.piece = new_new_piece
                 if self.lock_mode:
@@ -472,13 +476,10 @@ class TetrisGame:
 
     def _move_left_or_right(self, is_right: bool) -> None:
         new_piece = copy.deepcopy(self.piece)
-        pos = new_piece.position
-        x = pos[0]
-        y = pos[1]
         if is_right:
-            new_piece.position = (x + 1, y)
+            new_piece.position += Vector2x1(1, 0)
         else:
-            new_piece.position = (x - 1, y)
+            new_piece.position += Vector2x1(-1, 0)
         if not self._has_collision(new_piece) and self.lock_count < 15:
             self.piece = new_piece
             if self.lock_mode:
@@ -527,12 +528,12 @@ class TetrisGame:
             random.shuffle(bag)
             self.piece_queue += bag
         if specific_kind < 0:
-            new_piece = Piece(self.piece_queue.pop(0), (5, 19), 0)
+            new_piece = Piece(self.piece_queue.pop(0), Vector2x1(5, 19), 0)
         else:
-            new_piece = Piece(specific_kind, (5, 19), 0)
+            new_piece = Piece(specific_kind, Vector2x1(5, 19), 0)
         if self._has_collision(new_piece):
             self.is_game_over = True
-            self.piece = Piece(0, (0, 2), 0)
+            self.piece = Piece(0, Vector2x1(0, 2), 0)
         else:
             self.piece = new_piece
             self.can_hold = True
@@ -540,25 +541,18 @@ class TetrisGame:
 
     def _lock_piece(self) -> None:
         piece_size = len(pieces[self.piece.kind][0])
-        x_pos = self.piece.position[0]
-        y_pos = self.piece.position[1]
         piece_grid = pieces[self.piece.kind][self.piece.rotation]
         # Recognize t-spin
         self.t_spin = False
         if self.successful_rotation and self.piece.kind == 6:
             occupied_squares = 0
             for i in range(4):
-                abs_y = y_pos + 2*(i % 2) - 2
-                abs_x = x_pos + 2*(i // 2) - 2
-                if abs_y < 0:
-                    occupied_squares += 1
-                elif abs_y >= 40:
-                    occupied_squares += 1
-                elif abs_x < 0:
-                    occupied_squares += 1
-                elif abs_x >= 10:
-                    occupied_squares += 1
-                elif self.board[abs_y][abs_x] != Color.BLANK.value:
+                board_pos = self.piece.position + Vector2x1(2 * (i % 2) - 2,
+                                                            2 * (i // 2) - 2)
+                if (board_pos.y < 0 or board_pos.y >= 40
+                        or board_pos.x < 0 or board_pos.x >= 10
+                        or self.board[board_pos.y][board_pos.x]
+                        != Color.BLANK.value):
                     occupied_squares += 1
             if occupied_squares >= 3:
                 self.t_spin = True
@@ -566,21 +560,24 @@ class TetrisGame:
             case 2:
                 for k in range(4):
                     if piece_grid[k // 2][k % 2] != Color.BLANK.value:
-                        abs_x = x_pos + k % 2 - 1
-                        abs_y = y_pos + k // 2 - 2
-                        self.board[abs_y][abs_x] = piece_grid[k // 2][k % 2]
+                        board_pos = self.piece.position + Vector2x1(k % 2 - 1,
+                                                                    k // 2 - 2)
+                        self.board[board_pos.y][board_pos.x] = (
+                                piece_grid[k // 2][k % 2])
             case 3:
                 for k in range(9):
                     if piece_grid[k // 3][k % 3] != Color.BLANK.value:
-                        abs_x = x_pos + k % 3 - 2
-                        abs_y = y_pos + k // 3 - 2
-                        self.board[abs_y][abs_x] = piece_grid[k // 3][k % 3]
+                        board_pos = self.piece.position + Vector2x1(k % 3 - 2,
+                                                                    k // 3 - 2)
+                        self.board[board_pos.y][board_pos.x] = (
+                                piece_grid[k // 3][k % 3])
             case 4:
                 for k in range(16):
                     if piece_grid[k // 4][k % 4] != Color.BLANK.value:
-                        abs_x = x_pos + k % 4 - 2
-                        abs_y = y_pos + k // 4 - 2
-                        self.board[abs_y][abs_x] = piece_grid[k // 4][k % 4]
+                        board_pos = self.piece.position + Vector2x1(k % 4 - 2,
+                                                                    k // 4 - 2)
+                        self.board[board_pos.y][board_pos.x] = (
+                                piece_grid[k // 4][k % 4])
         self._generate_new_piece()
 
     def _apply_gravity(self) -> None:
@@ -599,10 +596,7 @@ class TetrisGame:
                 self.lock_mode = False
             else:
                 new_piece = copy.deepcopy(self.piece)
-                pos = new_piece.position
-                x = pos[0]
-                y = pos[1]
-                new_piece.position = (x, y + 1)
+                new_piece.position += Vector2x1(0, 1)
                 if self._has_collision(new_piece):
                     self.lock_mode = True
                 else:
