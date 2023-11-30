@@ -24,6 +24,7 @@ from enum import Enum
 from dataclasses import dataclass
 import copy
 import random
+import numpy as np
 
 pieces = [
     [
@@ -234,21 +235,9 @@ class Input(Enum):
 
 
 @dataclass
-class Vector2x1:
-    x: int
-    y: int
-
-    def __add__(self, other):
-        return Vector2x1(self.x + other.x, self.y + other.y)
-
-    def __sub__(self, other):
-        return Vector2x1(self.x - other.x, self.y - other.y)
-
-
-@dataclass
 class Piece:
     kind: int
-    position: Vector2x1
+    position: np.ndarray
     rotation: int
 
 
@@ -274,19 +263,15 @@ class TetrisGame:
         self.can_hold = True
         self.piece_queue = []
         self.is_game_over = False
-        self.board = []
+        self.board = np.zeros((40, 10), dtype=int)
         self.soft_drop_mode = False
         self.lock_mode = False
         self.lock_count = 0
         self.had_tetris = False
         self.t_spin = False
-        for i in range(40):
-            self.board.append([])
-            for j in range(10):
-                self.board[i].append(Color.BLANK.value)
         self._generate_new_piece()
 
-    def get_board(self) -> [[int]]:
+    def get_board(self) -> np.ndarray:
         '''
         Returns current board. Board data structure: 2D array with color
         information. The Color enum says which color correspond with which
@@ -294,70 +279,63 @@ class TetrisGame:
         '''
         return self.board
 
-    def convert_piece_to_board(self, piece: Piece) -> (bool, [[int]]):
+    def convert_piece_to_board(self, piece: Piece) -> (bool, np.ndarray):
         '''
         Converts piece information to a board with only that piece. Returns a
         boolean saying if the conversion was successful.
         '''
-        board = []
-        for i in range(40):
-            board.append([])
-            for j in range(10):
-                board[i].append(Color.BLANK.value)
+        board = np.zeros((40, 10), dtype=int)
         success = True
         piece_size = len(pieces[piece.kind][0])
         piece_grid = pieces[piece.kind][piece.rotation]
         match piece_size:
             case 2:
                 for k in range(4):
-                    board_pos = piece.position + Vector2x1(k % 2 - 1,
-                                                           k // 2 - 2)
+                    board_pos = piece.position + np.array([k % 2 - 1,
+                                                           k // 2 - 2])
                     if piece_grid[k // 2][k % 2] != 0:
-                        if (board_pos.y < 0 or board_pos.y >= 40
-                                or board_pos.x < 0 or board_pos.x >= 10):
+                        if (board_pos[1] < 0 or board_pos[1] >= 40
+                                or board_pos[0] < 0 or board_pos[0] >= 10):
                             success = False
                             break
-                        board[board_pos.y][board_pos.x] = (
+                        board[board_pos[1]][board_pos[0]] = (
                                 piece_grid[k // 2][k % 2])
             case 3:
                 for k in range(9):
-                    board_pos = piece.position + Vector2x1(k % 3 - 2,
-                                                           k // 3 - 2)
+                    board_pos = piece.position + np.array([k % 3 - 2,
+                                                           k // 3 - 2])
                     if piece_grid[k // 3][k % 3] != 0:
-                        if (board_pos.y < 0 or board_pos.y >= 40
-                                or board_pos.x < 0 or board_pos.x >= 10):
+                        if (board_pos[1] < 0 or board_pos[1] >= 40
+                                or board_pos[0] < 0 or board_pos[0] >= 10):
                             success = False
                             break
-                        board[board_pos.y][board_pos.x] = (
+                        board[board_pos[1]][board_pos[0]] = (
                                 piece_grid[k // 3][k % 3])
             case 4:
                 for k in range(16):
-                    board_pos = piece.position + Vector2x1(k % 4 - 2,
-                                                           k // 4 - 2)
+                    board_pos = piece.position + np.array([k % 4 - 2,
+                                                           k // 4 - 2])
                     if piece_grid[k // 4][k % 4] != 0:
-                        if (board_pos.y < 0 or board_pos.y >= 40
-                                or board_pos.x < 0 or board_pos.x >= 10):
+                        if (board_pos[1] < 0 or board_pos[1] >= 40
+                                or board_pos[0] < 0 or board_pos[0] >= 10):
                             success = False
                             break
-                        board[board_pos.y][board_pos.x] = (
+                        board[board_pos[1]][board_pos[0]] = (
                                 piece_grid[k // 4][k % 4])
         return (success, board)
 
-    def combine_boards(self, board1: [[int]], board2: [[int]]) -> bool:
+    def combine_boards(self, board1: np.ndarray, board2: np.ndarray) -> bool:
         '''
         Combines two boards into one. There cannot be any overlap between the
         two boards. This function returns a boolean saying whether the process
         was successful. Result is stored in the first board.
         '''
-        for i in range(40):
-            for j in range(10):
-                if board2[i][j] != 0 and board1[i][j] != 0:
-                    return False
-                if board2[i][j] != 0:
-                    board1[i][j] = board2[i][j]
+        if np.any(board1 * board2):
+            return False
+        board1 += board2
         return True
 
-    def get_simple_board(self) -> [[int]]:
+    def get_simple_board(self) -> np.ndarray:
         '''
         This function returns a binary board (no color information) that is
         21x10 with the current piece also included on the board.
@@ -365,10 +343,7 @@ class TetrisGame:
         _, new_board = self.convert_piece_to_board(self.piece)
         self.combine_boards(new_board, self.board)
         new_board = new_board[19:]
-        for i in range(21):
-            for j in range(10):
-                if new_board[i][j] != 0:
-                    new_board[i][j] = 1
+        new_board[new_board != 0] = 1
         return new_board
 
     def get_frame_rate(self) -> int:
@@ -384,8 +359,8 @@ class TetrisGame:
         '''
         new_piece = copy.deepcopy(self.piece)
         while not self._has_collision(new_piece):
-            new_piece.position += Vector2x1(0, 1)
-        new_piece.position += Vector2x1(0, -1)
+            new_piece.position[1] += 1
+        new_piece.position[1] -= 1
         return new_piece
 
     def get_current_piece(self) -> Piece:
@@ -469,7 +444,7 @@ class TetrisGame:
 
         for shift in rotation_table:
             new_new_piece = copy.deepcopy(new_piece)
-            new_new_piece.position += Vector2x1(shift[0], -shift[1])
+            new_new_piece.position += np.array([shift[0], -shift[1]])
             if not self._has_collision(new_new_piece) and self.lock_count < 15:
                 self.piece = new_new_piece
                 if self.lock_mode:
@@ -482,9 +457,9 @@ class TetrisGame:
     def _move_left_or_right(self, is_right: bool) -> None:
         new_piece = copy.deepcopy(self.piece)
         if is_right:
-            new_piece.position += Vector2x1(1, 0)
+            new_piece.position[0] += 1
         else:
-            new_piece.position += Vector2x1(-1, 0)
+            new_piece.position[0] -= 1
         if not self._has_collision(new_piece) and self.lock_count < 15:
             self.piece = new_piece
             if self.lock_mode:
@@ -533,12 +508,12 @@ class TetrisGame:
             random.shuffle(bag)
             self.piece_queue += bag
         if specific_kind < 0:
-            new_piece = Piece(self.piece_queue.pop(0), Vector2x1(5, 19), 0)
+            new_piece = Piece(self.piece_queue.pop(0), np.array([5, 19]), 0)
         else:
-            new_piece = Piece(specific_kind, Vector2x1(5, 19), 0)
+            new_piece = Piece(specific_kind, np.array([5, 19]), 0)
         if self._has_collision(new_piece):
             self.is_game_over = True
-            self.piece = Piece(0, Vector2x1(0, 2), 0)
+            self.piece = Piece(0, np.array([0, 2]), 0)
         else:
             self.piece = new_piece
             self.can_hold = True
@@ -550,11 +525,11 @@ class TetrisGame:
         if self.successful_rotation and self.piece.kind == 6:
             occupied_squares = 0
             for i in range(4):
-                board_pos = self.piece.position + Vector2x1(2 * (i % 2) - 2,
-                                                            2 * (i // 2) - 2)
-                if (board_pos.y < 0 or board_pos.y >= 40
-                        or board_pos.x < 0 or board_pos.x >= 10
-                        or self.board[board_pos.y][board_pos.x]
+                board_pos = self.piece.position + np.array([2 * (i % 2) - 2,
+                                                            2 * (i // 2) - 2])
+                if (board_pos[1] < 0 or board_pos[1] >= 40
+                        or board_pos[0] < 0 or board_pos[0] >= 10
+                        or self.board[board_pos[1]][board_pos[0]]
                         != Color.BLANK.value):
                     occupied_squares += 1
             if occupied_squares >= 3:
@@ -580,7 +555,7 @@ class TetrisGame:
                 self.lock_mode = False
             else:
                 new_piece = copy.deepcopy(self.piece)
-                new_piece.position += Vector2x1(0, 1)
+                new_piece.position[1] += 1
                 if self._has_collision(new_piece):
                     self.lock_mode = True
                 else:
@@ -590,16 +565,12 @@ class TetrisGame:
     def _clear_lines(self) -> None:
         lines_cleared = 0
         for i in range(len(self.board)):
-            full = True
-            for j in range(len(self.board[i])):
-                if self.board[i][j] == Color.BLANK.value:
-                    full = False
-                    break
-            if full:
+            if np.all(self.board[i]):
                 lines_cleared += 1
-                new_line = [0] * 10
-                self.board.pop(i)
-                self.board.insert(0, new_line)
+                self.board = np.concatenate(
+                        (np.zeros((1, 10), dtype=int),
+                         np.roll(self.board, 1, axis=0)[1:i + 1],
+                         self.board[i + 1:]))
         self._update_scores(lines_cleared)
 
     def _update_scores(self, lines_cleared: int) -> None:
