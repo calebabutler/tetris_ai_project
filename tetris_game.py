@@ -294,40 +294,81 @@ class TetrisGame:
         '''
         return self.board
 
+    def convert_piece_to_board(self, piece: Piece) -> (bool, [[int]]):
+        '''
+        Converts piece information to a board with only that piece. Returns a
+        boolean saying if the conversion was successful.
+        '''
+        board = []
+        for i in range(40):
+            board.append([])
+            for j in range(10):
+                board[i].append(Color.BLANK.value)
+        success = True
+        piece_size = len(pieces[piece.kind][0])
+        piece_grid = pieces[piece.kind][piece.rotation]
+        match piece_size:
+            case 2:
+                for k in range(4):
+                    board_pos = piece.position + Vector2x1(k % 2 - 1,
+                                                           k // 2 - 2)
+                    if piece_grid[k // 2][k % 2] != 0:
+                        if (board_pos.y < 0 or board_pos.y >= 40
+                                or board_pos.x < 0 or board_pos.x >= 10):
+                            success = False
+                            break
+                        board[board_pos.y][board_pos.x] = (
+                                piece_grid[k // 2][k % 2])
+            case 3:
+                for k in range(9):
+                    board_pos = piece.position + Vector2x1(k % 3 - 2,
+                                                           k // 3 - 2)
+                    if piece_grid[k // 3][k % 3] != 0:
+                        if (board_pos.y < 0 or board_pos.y >= 40
+                                or board_pos.x < 0 or board_pos.x >= 10):
+                            success = False
+                            break
+                        board[board_pos.y][board_pos.x] = (
+                                piece_grid[k // 3][k % 3])
+            case 4:
+                for k in range(16):
+                    board_pos = piece.position + Vector2x1(k % 4 - 2,
+                                                           k // 4 - 2)
+                    if piece_grid[k // 4][k % 4] != 0:
+                        if (board_pos.y < 0 or board_pos.y >= 40
+                                or board_pos.x < 0 or board_pos.x >= 10):
+                            success = False
+                            break
+                        board[board_pos.y][board_pos.x] = (
+                                piece_grid[k // 4][k % 4])
+        return (success, board)
+
+    def combine_boards(self, board1: [[int]], board2: [[int]]) -> bool:
+        '''
+        Combines two boards into one. There cannot be any overlap between the
+        two boards. This function returns a boolean saying whether the process
+        was successful. Result is stored in the first board.
+        '''
+        for i in range(40):
+            for j in range(10):
+                if board2[i][j] != 0 and board1[i][j] != 0:
+                    return False
+                if board2[i][j] != 0:
+                    board1[i][j] = board2[i][j]
+        return True
+
     def get_simple_board(self) -> [[int]]:
         '''
         This function returns a binary board (no color information) that is
         21x10 with the current piece also included on the board.
         '''
-        new_board = copy.deepcopy(self.board)
-        for i in range(19):
-            new_board.pop(0)
+        _, new_board = self.convert_piece_to_board(self.piece)
+        self.combine_boards(new_board, self.board)
+        new_board = new_board[19:]
         for i in range(21):
             for j in range(10):
                 if new_board[i][j] != 0:
                     new_board[i][j] = 1
-
-        piece_size = len(pieces[self.piece.kind][0])
-        piece_grid = pieces[self.piece.kind][self.piece.rotation]
-        match piece_size:
-            case 2:
-                for k in range(4):
-                    board_pos = self.piece.position + Vector2x1(k % 2 - 1,
-                                                                k // 2 - 2)
-                    if board_pos.y >= 19 and piece_grid[k // 2][k % 2] != 0:
-                        new_board[board_pos.y - 19][board_pos.x] = 1
-            case 3:
-                for k in range(9):
-                    board_pos = self.piece.position + Vector2x1(k % 3 - 2,
-                                                                k // 3 - 2)
-                    if board_pos.y >= 19 and piece_grid[k // 3][k % 3] != 0:
-                        new_board[board_pos.y - 19][board_pos.x] = 1
-            case 4:
-                for k in range(16):
-                    board_pos = self.piece.position + Vector2x1(k % 4 - 2,
-                                                                k // 4 - 2)
-                    if board_pos.y >= 19 and piece_grid[k // 4][k % 4] != 0:
-                        new_board[board_pos.y - 19][board_pos.x] = 1
         return new_board
 
     def get_frame_rate(self) -> int:
@@ -399,47 +440,11 @@ class TetrisGame:
             self._clear_lines()
 
     def _has_collision(self, piece: Piece) -> bool:
-        assert piece.kind >= 0 and piece.kind < len(pieces)
-        piece_size = len(pieces[piece.kind][0])
-        piece_grid = pieces[piece.kind][piece.rotation]
-        match piece_size:
-            case 2:
-                for k in range(4):
-                    if piece_grid[k // 2][k % 2] != Color.BLANK.value:
-                        board_pos = piece.position + Vector2x1(k % 2 - 1,
-                                                               k // 2 - 2)
-                        if board_pos.x < 0 or board_pos.x >= 10:
-                            return True
-                        if board_pos.y < 0 or board_pos.y >= 40:
-                            return True
-                        if (self.board[board_pos.y][board_pos.x]
-                                != Color.BLANK.value):
-                            return True
-            case 3:
-                for k in range(9):
-                    if piece_grid[k // 3][k % 3] != Color.BLANK.value:
-                        board_pos = piece.position + Vector2x1(k % 3 - 2,
-                                                               k // 3 - 2)
-                        if board_pos.x < 0 or board_pos.x >= 10:
-                            return True
-                        if board_pos.y < 0 or board_pos.y >= 40:
-                            return True
-                        if (self.board[board_pos.y][board_pos.x]
-                                != Color.BLANK.value):
-                            return True
-            case 4:
-                for k in range(16):
-                    if piece_grid[k // 4][k % 4] != Color.BLANK.value:
-                        board_pos = piece.position + Vector2x1(k % 4 - 2,
-                                                               k // 4 - 2)
-                        if board_pos.x < 0 or board_pos.x >= 10:
-                            return True
-                        if board_pos.y < 0 or board_pos.y >= 40:
-                            return True
-                        if (self.board[board_pos.y][board_pos.x]
-                                != Color.BLANK.value):
-                            return True
-        return False
+        success, new_board = self.convert_piece_to_board(piece)
+        if not success:
+            return True
+        success = self.combine_boards(new_board, self.board)
+        return not success
 
     def _rotate(self, is_clockwise: bool) -> None:
         new_piece = copy.deepcopy(self.piece)
@@ -540,8 +545,6 @@ class TetrisGame:
             self.soft_drop_mode = False
 
     def _lock_piece(self) -> None:
-        piece_size = len(pieces[self.piece.kind][0])
-        piece_grid = pieces[self.piece.kind][self.piece.rotation]
         # Recognize t-spin
         self.t_spin = False
         if self.successful_rotation and self.piece.kind == 6:
@@ -556,28 +559,9 @@ class TetrisGame:
                     occupied_squares += 1
             if occupied_squares >= 3:
                 self.t_spin = True
-        match piece_size:
-            case 2:
-                for k in range(4):
-                    if piece_grid[k // 2][k % 2] != Color.BLANK.value:
-                        board_pos = self.piece.position + Vector2x1(k % 2 - 1,
-                                                                    k // 2 - 2)
-                        self.board[board_pos.y][board_pos.x] = (
-                                piece_grid[k // 2][k % 2])
-            case 3:
-                for k in range(9):
-                    if piece_grid[k // 3][k % 3] != Color.BLANK.value:
-                        board_pos = self.piece.position + Vector2x1(k % 3 - 2,
-                                                                    k // 3 - 2)
-                        self.board[board_pos.y][board_pos.x] = (
-                                piece_grid[k // 3][k % 3])
-            case 4:
-                for k in range(16):
-                    if piece_grid[k // 4][k % 4] != Color.BLANK.value:
-                        board_pos = self.piece.position + Vector2x1(k % 4 - 2,
-                                                                    k // 4 - 2)
-                        self.board[board_pos.y][board_pos.x] = (
-                                piece_grid[k // 4][k % 4])
+        # Lock piece
+        _, new_board = self.convert_piece_to_board(self.piece)
+        self.combine_boards(self.board, new_board)
         self._generate_new_piece()
 
     def _apply_gravity(self) -> None:
