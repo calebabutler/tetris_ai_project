@@ -31,6 +31,8 @@ def main() -> None:
     renderer.setup()
     running = True
 
+    clock = pygame.time.Clock()
+
     while running:
         game.step()
         renderer.rerender()
@@ -53,7 +55,7 @@ def main() -> None:
                         game.set_next_input(Input.C_ROTATE.value)
                     case pygame.K_z:
                         game.set_next_input(Input.CC_ROTATE.value)
-        pygame.time.wait(1000 // game.get_frame_rate())
+        clock.tick(game.get_frame_rate())
 
 
 if __name__ == '__main__':
