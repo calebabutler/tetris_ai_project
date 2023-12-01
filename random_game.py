@@ -32,8 +32,6 @@ def main() -> None:
     renderer.setup()
     running = True
 
-    clock = pygame.time.Clock()
-
     while running:
         game.step()
         renderer.rerender()
@@ -44,7 +42,6 @@ def main() -> None:
         if game.is_over():
             game = TetrisGame(60)
             renderer.set_game(game)
-        clock.tick(game.get_frame_rate())
 
 
 if __name__ == '__main__':
