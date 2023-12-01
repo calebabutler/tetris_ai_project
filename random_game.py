@@ -32,9 +32,14 @@ def main() -> None:
     renderer.setup()
     running = True
 
+    rendering_ticks = 0
+    render_frame_rate = 60
+
     while running:
         game.step()
-        renderer.rerender()
+        if pygame.time.get_ticks() > rendering_ticks:
+            renderer.rerender()
+            rendering_ticks += 1000 // render_frame_rate
         game.set_next_input(random.randint(0, 8))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
