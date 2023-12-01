@@ -40,8 +40,7 @@ def main() -> None:
             if event.type == pygame.QUIT:
                 running = False
         if game.is_over():
-            game = TetrisGame(60)
-            renderer.set_game(game)
+            game.reset()
 
 
 if __name__ == '__main__':

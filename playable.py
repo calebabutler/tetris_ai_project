@@ -55,6 +55,8 @@ def main() -> None:
                         game.set_next_input(Input.C_ROTATE.value)
                     case pygame.K_z:
                         game.set_next_input(Input.CC_ROTATE.value)
+                    case pygame.K_r:
+                        game.reset()
         clock.tick(game.get_frame_rate())
 
 

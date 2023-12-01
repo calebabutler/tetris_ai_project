@@ -254,6 +254,12 @@ class TetrisGame:
     def __init__(self, frame_rate: int) -> None:
         assert frame_rate > 0
         self.frame_rate = frame_rate
+        self.reset()
+
+    def reset(self) -> None:
+        '''
+        Reset the game to the initial state
+        '''
         self.successful_rotation = False
         self.next_input = Input.NONE.value
         self.level = 1
