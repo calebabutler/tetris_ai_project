@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from tetris_game import TetrisGame, Piece, pieces, Color
+from tetris_game import TetrisGame, Piece, Color
 import numpy as np
 import pygame
 
@@ -80,9 +80,9 @@ class Renderer:
         pygame.display.flip()
 
     def _render_block(self, position: np.ndarray, color: int,
-                      on_board: bool, alpha: int = 0) -> None:
-        if position[1] < 19 and on_board:
-            return
+                      offset: np.ndarray = np.array([0, 0]),
+                      alpha: int = 0) -> None:
+        position += offset
         rect = pygame.Rect(position[0] * BLOCK_SIZE,
                            (position[1] - 10) * BLOCK_SIZE,
                            BLOCK_SIZE, BLOCK_SIZE)
@@ -104,52 +104,40 @@ class Renderer:
             case Color.MAGENTA.value:
                 self.screen.fill((128 - alpha // 2, 0, 128 - alpha // 2), rect)
 
-    def _render_piece(self, piece: Piece, on_board: bool,
+    def _render_any_board(self, board: np.ndarray,
+                          offset: np.ndarray = np.array([0, 0]),
+                          alpha: int = 0):
+        for i in range(19, 40):
+            for j in range(10):
+                self._render_block(np.array([j, i]), board[i][j], offset,
+                                   alpha)
+
+    def _render_piece(self, piece: Piece,
+                      offset: np.ndarray = np.array([0, 0]),
                       alpha: int = 0) -> None:
-        assert piece.kind >= 0 and piece.kind < len(pieces)
-        piece_size = len(pieces[piece.kind][0])
-        piece_grid = pieces[piece.kind][piece.rotation]
-        match piece_size:
-            case 2:
-                for k in range(4):
-                    self._render_block(
-                            piece.position + np.array([k % 2 - 1, k // 2 - 2]),
-                            piece_grid[k // 2][k % 2], on_board, alpha)
-            case 3:
-                for k in range(9):
-                    self._render_block(
-                            piece.position + np.array([k % 3 - 2, k // 3 - 2]),
-                            piece_grid[k // 3][k % 3], on_board, alpha)
-            case 4:
-                for k in range(16):
-                    self._render_block(
-                            piece.position + np.array([k % 4 - 2, k // 4 - 2]),
-                            piece_grid[k // 4][k % 4], on_board, alpha)
+        _, board = self.game.convert_piece_to_board(piece)
+        self._render_any_board(board, offset, alpha)
 
     def _render_current_piece(self) -> None:
-        self._render_piece(self.game.get_current_piece(), True)
+        self._render_piece(self.game.get_current_piece())
 
     def _render_shadow_piece(self) -> None:
-        self._render_piece(self.game.get_shadow_piece(), True, 100)
+        self._render_piece(self.game.get_shadow_piece(), alpha=100)
 
     def _render_next_pieces(self) -> None:
         next_pieces = self.game.get_next_pieces()
-        for i in range(len(next_pieces)):
-            self._render_piece(Piece(next_pieces[i],
-                                     np.array([13, 13 + i * 4]), 0),
-                               False)
+        for i, kind in enumerate(next_pieces):
+            piece = Piece(kind, np.array([2, 38]), 0)
+            self._render_piece(piece, offset=np.array([11, -25 + i * 4]))
 
     def _render_hold_piece(self) -> None:
-        hold_piece = self.game.get_hold_piece()
-        if hold_piece >= 0:
-            self._render_piece(Piece(hold_piece,
-                                     np.array([13, 37]), 0), False)
+        kind = self.game.get_hold_piece()
+        if kind >= 0:
+            piece = Piece(kind, np.array([2, 38]), 0)
+            self._render_piece(piece, offset=np.array([11, 0]))
 
     def _render_board(self) -> None:
-        board = self.game.get_board()
-        for i in range(19, 40):
-            for j in range(10):
-                self._render_block(np.array([j, i]), board[i][j], True)
+        self._render_any_board(self.game.get_board())
 
     def _render_level(self) -> None:
         self.font.render_to(self.screen, (10, 10),
