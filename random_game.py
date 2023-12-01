@@ -37,7 +37,7 @@ def main() -> None:
     while running:
         game.step()
         renderer.rerender()
-        game.set_next_input(random.randint(1, 8))
+        game.set_next_input(random.randint(0, 8))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
