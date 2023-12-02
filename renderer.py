@@ -73,7 +73,8 @@ class Renderer:
         self._render_score()
         self._render_game_over()
         self._render_game_aggregate_height()
-        self._render_game_holes()        
+        self._render_game_holes()
+        self._render_game_bumpiness()        
         self._render_shadow_piece()
         self._render_current_piece()
         self._render_next_pieces()
@@ -161,3 +162,7 @@ class Renderer:
     def _render_game_holes(self) -> None:
         self.font.render_to(self.screen, (10, 82),
                             f'Number of Holes: {self.game.get_number_holes()}', (255, 255, 255))  
+
+    def _render_game_bumpiness(self) -> None:
+        self.font.render_to(self.screen, (10, 100),
+                            f'Bumpiness: {self.game.get_bumpiness()}', (255, 255, 255))  

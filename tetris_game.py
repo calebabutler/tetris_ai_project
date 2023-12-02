@@ -278,6 +278,7 @@ class TetrisGame:
         self._generate_new_piece()
         ## Line 280/281 Addition Made by Charleston Andrews: 12/2/2023
         self.aggregate_height = 0
+        self.bumpiness = 0
         self.number_holes = 0        
 
     def get_board(self) -> np.ndarray:
@@ -547,7 +548,7 @@ class TetrisGame:
         _, new_board = self.convert_piece_to_board(self.piece)
         self.combine_boards(self.board, new_board)
         # Line 550/551 Addition made by Charleston Andrews: 12/2/2023
-        self.aggregate_height = self._calculate_aggregate_height()
+        self.aggregate_height, self.bumpiness = self._calculate_aggregate_height_bumpiness()
         self.number_holes = self._calculate_number_holes()
         self._generate_new_piece()
 
@@ -618,7 +619,7 @@ class TetrisGame:
         if self.score >= self.level * (self.level + 1) // 2 * 5:
             self.level += 1
 
-    def _calculate_aggregate_height(self) -> int:
+    def _calculate_aggregate_height_bumpiness(self) -> (int, int):
         
         arr = self.get_board()
         column_height_array = [0] * 10
@@ -636,12 +637,21 @@ class TetrisGame:
             count_x -= 1
         
         aggregate_height = 0
+        bumpiness = 0
+        temp = 0
+
         for z in range(0,10):
             aggregate_height += column_height_array[z]
-        return aggregate_height
+        for z in range(0,9):
+            temp = abs(column_height_array[z] - column_height_array[z+1])
+            bumpiness += temp 
+        return aggregate_height, bumpiness
 
     def get_aggregate_height(self) -> int:
         return self.aggregate_height
+
+    def get_bumpiness(self) -> int:
+        return self.bumpiness
 
     def _calculate_number_holes(self) -> int:
         arr = self.get_board()
