@@ -547,8 +547,8 @@ class TetrisGame:
         _, new_board = self.convert_piece_to_board(self.piece)
         self.combine_boards(self.board, new_board)
         # Line 550/551 Addition made by Charleston Andrews: 12/2/2023
-        self.set_aggregate_height(self.calculate_aggregate_height())
-        self.set_number_holes(self.calculate_number_holes())
+        self.aggregate_height = self._calculate_aggregate_height()
+        self.number_holes = self._calculate_number_holes()
         self._generate_new_piece()
 
     def _apply_gravity(self) -> None:
@@ -618,7 +618,7 @@ class TetrisGame:
         if self.score >= self.level * (self.level + 1) // 2 * 5:
             self.level += 1
 
-    def calculate_aggregate_height(self) -> int:
+    def _calculate_aggregate_height(self) -> int:
         
         arr = self.get_board()
         column_height_array = [0] * 10
@@ -640,13 +640,10 @@ class TetrisGame:
             aggregate_height += column_height_array[z]
         return aggregate_height
 
-    def set_aggregate_height(self, height: int) -> None:
-        self.aggregate_height =  height
-
     def get_aggregate_height(self) -> int:
         return self.aggregate_height
 
-    def calculate_number_holes(self) -> int:
+    def _calculate_number_holes(self) -> int:
         arr = self.get_board()
         count_hole_array = [0] * 10
         column_array_previous = [0] * 10
@@ -671,9 +668,6 @@ class TetrisGame:
         for z in range(0,10):
             num_holes += count_hole_array[z]
         return num_holes
-    
-    def set_number_holes(self,holes: int) -> None:
-        self.number_holes = holes
-    
+   
     def get_number_holes(self) -> int:
         return self.number_holes
