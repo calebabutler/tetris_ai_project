@@ -681,3 +681,110 @@ class TetrisGame:
    
     def get_number_holes(self) -> int:
         return self.number_holes
+
+    def get_board_statistics(self):
+        return [self.get_score(), self.get_number_holes(), self.get_bumpiness(), self.get_aggregate_height()]
+    
+
+    def get_next_state(self) -> None:
+        states = {}
+        piece_id = self.get_current_piece()
+        if (piece_id.kind == 3):
+            rotations = [0]
+        elif(piece_id.kind == 0 or piece_id.kind == 4 or piece_id.kind == 5):
+            rotations = [0,1]
+        else:
+            rotations = [0,1,2,3]
+        
+        piece = Piece(piece_id.kind,piece_id.position,piece_id.rotation)
+    
+                
+    def position_lookuptable(self, piece: Piece) -> (int,int):
+        min_x = 0
+        max_x = 0
+        match piece.kind:
+            #Long Piece/Turquoise
+            case 0:
+                if (piece.rotation == 0):
+                    min_x = 2
+                    max_x = 8
+                else:
+                    min_x = 0
+                    max_x = 9
+            #L Piece/Blue
+            case 1:
+                if (piece.rotation == 0):
+                    min_x = 2
+                    max_x = 9
+                elif (piece.rotation == 1):
+                    min_x = 1
+                    max_x = 9
+                elif (piece.rotation == 2):
+                    min_x = 2
+                    max_x = 9
+                else:
+                    min_x = 2
+                    max_x = 10
+            #L Piece/Orange
+            case 2:
+                if (piece.rotation == 0):
+                    min_x = 2
+                    max_x = 9
+                elif (piece.rotation == 1):
+                    min_x = 1
+                    max_x = 9
+                elif (piece.rotation == 2):
+                    min_x = 2
+                    max_x = 9
+                else:
+                    min_x = 2
+                    max_x = 10
+            #Square Piece/Yellow
+            case 3:
+                min_x = 1
+                max_x = 9
+            #Skew Piece/Green
+            case 4:
+                if(piece.rotation == 0):
+                    min_x = 2
+                    max_x = 9
+                else:
+                    min_x = 1
+                    max_x = 9
+            #Skew Piece/Red
+            case 5:
+                if(piece.rotation == 0):
+                    min_x = 2
+                    max_x = 9
+                else:
+                    min_x = 2
+                    max_x = 10
+            #T Piece/Pink
+            case 6:
+                if(piece.rotation == 0):
+                    min_x = 2
+                    max_x = 9
+                elif(piece.rotation == 1):
+                    min_x = 1
+                    max_x = 9
+                elif(piece.rotation == 2):
+                    min_x = 2
+                    max_x = 9
+                else:
+                    min_x = 2
+                    max_x = 10
+            case _:
+                min_x = 0
+                max_x = 0
+        return min_x,max_x
+            
+
+
+
+
+
+    
+
+
+        
+
