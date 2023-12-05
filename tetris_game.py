@@ -548,8 +548,8 @@ class TetrisGame:
         _, new_board = self.convert_piece_to_board(self.piece)
         self.combine_boards(self.board, new_board)
         # Line 550/551 Addition made by Charleston Andrews: 12/2/2023
-        self.aggregate_height, self.bumpiness = self._calculate_aggregate_height_bumpiness()
-        self.number_holes = self._calculate_number_holes()
+        self.aggregate_height, self.bumpiness = self._calculate_aggregate_height_bumpiness("regular")
+        self.number_holes = self._calculate_number_holes("regular")
         self._generate_new_piece()
 
     def _apply_gravity(self) -> None:
@@ -619,22 +619,33 @@ class TetrisGame:
         if self.score >= self.level * (self.level + 1) // 2 * 5:
             self.level += 1
 
-    def _calculate_aggregate_height_bumpiness(self) -> (int, int):
-        
-        arr = self.get_board()
+    def _calculate_aggregate_height_bumpiness(self, state: str) -> (int, int):
+
         column_height_array = [0] * 10
         column_check_array = [False] * 10
         count_x = 21
         count_y = 0
 
-        for x in arr[19:]:
-            count_y = 0
-            for y in x:
-                if(y > 0 and column_check_array[count_y]==False):
-                    column_height_array[count_y] = count_x
-                    column_check_array[count_y] = True
-                count_y += 1
-            count_x -= 1
+        if(state == "state"):
+            arr = self.get_simple_board()
+            for x in arr[0:]:
+                count_y = 0
+                for y in x:
+                    if(y > 0 and column_check_array[count_y]==False):
+                        column_height_array[count_y] = count_x
+                        column_check_array[count_y] = True
+                    count_y += 1
+                count_x -= 1
+        else:
+            arr = self.get_board()
+            for x in arr[19:]:
+                count_y = 0
+                for y in x:
+                    if(y > 0 and column_check_array[count_y]==False):
+                        column_height_array[count_y] = count_x
+                        column_check_array[count_y] = True
+                    count_y += 1
+                count_x -= 1
         
         aggregate_height = 0
         bumpiness = 0
@@ -653,27 +664,45 @@ class TetrisGame:
     def get_bumpiness(self) -> int:
         return self.bumpiness
 
-    def _calculate_number_holes(self) -> int:
-        arr = self.get_board()
+    def _calculate_number_holes(self,state: str) -> int:
+
         count_hole_array = [0] * 10
         column_array_previous = [0] * 10
         count_x = 21
         count_y = 0
         num_holes = 0
-        for x in arr[19:]:
-            if(count_x == 21):
-                for y in x:
-                    column_array_previous[count_y] = y
-                    count_y += 1
-                count_y = 0
-            else:
-                for y in x:
-                    if(column_array_previous[count_y] > 0 and y == 0):
-                        count_hole_array[y] += 1
-                    column_array_previous[count_y] = y
-                    count_y += 1
-                count_y = 0
-            count_x -= 1
+        if(state == "state"):
+            arr = self.get_simple_board()
+            for x in arr[0:]:
+                if(count_x == 21):
+                    for y in x:
+                        column_array_previous[count_y] = y
+                        count_y += 1
+                    count_y = 0
+                else:
+                    for y in x:
+                        if(column_array_previous[count_y] > 0 and y == 0):
+                            count_hole_array[y] += 1
+                        column_array_previous[count_y] = y
+                        count_y += 1
+                    count_y = 0
+                count_x -= 1
+        else:
+            arr = self.get_board()
+            for x in arr[19:]:
+                if(count_x == 21):
+                    for y in x:
+                        column_array_previous[count_y] = y
+                        count_y += 1
+                    count_y = 0
+                else:
+                    for y in x:
+                        if(column_array_previous[count_y] > 0 and y == 0):
+                            count_hole_array[y] += 1
+                        column_array_previous[count_y] = y
+                        count_y += 1
+                    count_y = 0
+                count_x -= 1
         
         for z in range(0,10):
             num_holes += count_hole_array[z]
@@ -685,8 +714,17 @@ class TetrisGame:
     def get_board_statistics(self):
         return [self.get_score(), self.get_number_holes(), self.get_bumpiness(), self.get_aggregate_height()]
     
+    def _calculate_number_lines(self) -> int:
+        arr = self.get_simple_board()
+        lines_cleared = 0
+        for i in range(len(arr)):
+            if np.all(arr[i]):
+                lines_cleared += 1
+        return lines_cleared        
 
-    def get_next_state(self) -> None:
+    
+
+    def get_next_state(self):
         states = {}
         piece_id = self.get_current_piece()
         if (piece_id.kind == 3):
@@ -696,7 +734,28 @@ class TetrisGame:
         else:
             rotations = [0,1,2,3]
         
-        piece = Piece(piece_id.kind,piece_id.position,piece_id.rotation)
+        for rotation in rotations:
+            piece = Piece(piece_id.kind,piece_id.position,rotation)
+            minimmum_x, maximmum_x = self.position_lookuptable(piece)
+
+            temp_game = copy.deepcopy(self)
+            for x in range(minimmum_x,maximmum_x+1):
+                pos = [x,19]
+                piece.position = pos
+                while(not(temp_game._has_collision(piece))):
+                    piece.position[1] +=1
+                piece.position[1] -= 1
+                temp_game.piece = piece
+                temp_game.set_next_input(Input.HARD_DROP.value)
+                temp_holes = temp_game._calculate_number_holes("state")
+                temp_aggregate_height,temp_bumpiness = temp_game._calculate_aggregate_height_bumpiness("state")
+                temp_score = temp_game.get_score() + temp_game._calculate_number_lines()
+                
+
+                if(piece.position[1] >= 19):
+                    states[(x,rotation)] = [temp_score,temp_holes,temp_bumpiness,temp_aggregate_height]
+        return states  
+
     
                 
     def position_lookuptable(self, piece: Piece) -> (int,int):
@@ -757,8 +816,8 @@ class TetrisGame:
                     min_x = 2
                     max_x = 9
                 else:
-                    min_x = 2
-                    max_x = 10
+                    min_x = 1
+                    max_x = 9
             #T Piece/Pink
             case 6:
                 if(piece.rotation == 0):
