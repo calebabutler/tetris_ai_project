@@ -740,7 +740,7 @@ class TetrisGame:
 
             temp_game = copy.deepcopy(self)
             for x in range(minimmum_x,maximmum_x+1):
-                pos = [x,19]
+                pos = np.array([x,19])
                 piece.position = pos
                 while(not(temp_game._has_collision(piece))):
                     piece.position[1] +=1
