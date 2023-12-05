@@ -746,12 +746,10 @@ class TetrisGame:
                     piece.position[1] +=1
                 piece.position[1] -= 1
                 temp_game.piece = piece
-                temp_game.set_next_input(Input.HARD_DROP.value)
                 temp_holes = temp_game._calculate_number_holes("state")
                 temp_aggregate_height,temp_bumpiness = temp_game._calculate_aggregate_height_bumpiness("state")
                 temp_score = temp_game.get_score() + temp_game._calculate_number_lines()
                 
-
                 if(piece.position[1] >= 19):
                     states[(x,rotation)] = [temp_score,temp_holes,temp_bumpiness,temp_aggregate_height]
         return states  
