@@ -55,10 +55,18 @@ def main() -> None:
     game.step()
     renderer.rerender()
     current_state = game.get_simple_board().flatten()
+
+    rendering_ticks = 0
+    render_frame_rate = 60
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+        if pygame.time.get_ticks() > rendering_ticks:
+            renderer.rerender()
+            rendering_ticks += 1000 // render_frame_rate
+
         next_states = []
         for action in range(7):
             new_game = copy.deepcopy(game)
@@ -79,7 +87,6 @@ def main() -> None:
                 print("The best action is ", best_action)
                 game.set_next_input(best_action)
                 game.step()
-                renderer.rerender()
                 print(utility(game))
                 agent.remember(current_state, best_state, utility(game),
                                game.is_over())
