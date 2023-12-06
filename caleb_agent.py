@@ -22,7 +22,7 @@ def utility(game: TetrisGame) -> float:
     height_delta = game.get_aggregate_height() - previous_height
     holes_delta = game.get_number_holes() - previous_holes
     if (scores_delta < 0 or drops_delta < 0 or bumpiness_delta < 0
-       or height_delta < 0 or holes_delta < 0):
+       or height_delta < 0 or holes_delta < -1):
         scores_delta = 0
         previous_score = 0
         drops_delta = 0
