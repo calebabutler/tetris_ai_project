@@ -50,13 +50,27 @@ class DQNAgent:
         return self.model.predict(state)[0]
     
     def select_state(self, states):
+        max_value = None
+ 
         if random.random() <= self.epsilon:
             return random.choice(list(states))
         else:
+            count = 0
             for state in states:
-                val = self.predict(np.predict_value(state,[1,self.state_size]))
-                if not max_value or val > max_value:
-                    max_value = val
+                temp_val_sum = 0
+                temp_max_val_sum = 0
+                if (count == 0):
+                    val = self.predict_val(np.reshape(state,[1,self.state_size]))
+                    print("The value is", val)
+                    count = count + 1
+                    max_val = val
+                    best_state = state
+                else:
+                    val = self.predict_val(np.reshape(state,[1,self.state_size]))
+                for i in range(0,4): temp_val_sum = val[i] + val[i+1]
+                for i in range(0,4): temp_max_val_sum = max_val[i] + max_val[i+1]
+                if (count > 0 and temp_val_sum > temp_max_val_sum):
+                    max_val = val
                     best_state = state
         return best_state
 
@@ -70,13 +84,13 @@ class DQNAgent:
         
         for i,(state,__,reward,done) in enumerate(batch_sample):
             if (not done):
-                new_q = reward + self.discount * next_qs[i]
+                new_q = reward + self.gamma * next_qs[i]
             else:
                 new_q = reward
             x.append(state)
             y.append(new_q)
         
-        self.model.fit(np.array(x),np.arry(y),batch_size=batch_size,epochs=3,verbose=0)
+        self.model.fit(np.array(x),np.array(y),batch_size=batch_size,epochs=3,verbose=0)
 
         if self.epsilon > self.epsilon_min:
             self.epsilon -= self.epsilon_decay
@@ -108,7 +122,7 @@ def main() -> None:
             game.set_next_input(Input.C_ROTATE.value)
             game.step()
             renderer.rerender()
-            time.sleep(1)
+            #time.sleep(1)
         
         while(game.get_current_piece().position[0] != best_action[0]):
             if(best_action[0] < game.get_current_piece().position[0]):
@@ -117,7 +131,7 @@ def main() -> None:
                 game.set_next_input(Input.MOVE_RIGHT.value)
             game.step()
             renderer.rerender()
-            time.sleep(1)
+            #time.sleep(1)
         
         game.set_next_input(Input.HARD_DROP.value)
         game.step()
@@ -130,12 +144,12 @@ def main() -> None:
         current_state = next_state[best_action]
         scores.append(game.get_score())
         steps += 1
-        if(steps == 1001):
+        if(steps == 33):
             steps = 0
-            agent.train(1000)
+            agent.train(32)
         game.step()
         renderer.rerender()
-        time.sleep(1)
+        #time.sleep(1)
         if(game.is_over()):
             game.reset()
 
