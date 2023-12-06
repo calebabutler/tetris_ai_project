@@ -3,6 +3,7 @@ from renderer import Renderer
 from agent import DQNAgent
 import numpy as np
 import copy
+import pygame
 
 
 def main() -> None:
@@ -15,13 +16,16 @@ def main() -> None:
     renderer.rerender()
     current_state = game.get_simple_board().flatten()
     while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
         next_states = []
         for action in range(7):
             new_game = copy.deepcopy(game)
             new_game.set_next_input(action)
             new_game.step()
             next_states.append(new_game.get_simple_board().flatten())
-            best_state = agent.select_state(next_states)
+            best_state = agent.select_state(next_states, magic=True)
 
             if game.is_over():
                 agent.train(len(agent.memory))
