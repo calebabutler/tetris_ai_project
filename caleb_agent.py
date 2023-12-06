@@ -78,16 +78,19 @@ def main() -> None:
             if game.is_over():
                 agent.train(len(agent.memory))
                 game.reset()
+                print('***************************')
+                print(f'EPSILON: {agent.epsilon}')
+                print('***************************')
             else:
-                print("The best state is, ", best_state)
+                # print("The best state is, ", best_state)
                 for i, state in enumerate(next_states):
                     if np.all(state == best_state):
                         best_action = i
                         break
-                print("The best action is ", best_action)
+                # print("The best action is ", best_action)
                 game.set_next_input(best_action)
                 game.step()
-                print(utility(game))
+                # print(utility(game))
                 agent.remember(current_state, best_state, utility(game),
                                game.is_over())
                 current_state = best_state
