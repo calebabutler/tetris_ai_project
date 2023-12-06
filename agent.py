@@ -2,6 +2,7 @@ import random
 import numpy as np
 import tensorflow as tf
 import time
+import pygame
 from collections import deque
 from keras.models import Sequential, save_model, load_model
 from keras.layers import Dense
@@ -114,6 +115,10 @@ def main() -> None:
         next_state = game.get_next_state()
         best_state = agent.select_state(next_state.values())
         best_action = None
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
         if(game.is_over()):
             reset_code = True
