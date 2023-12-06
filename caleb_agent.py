@@ -21,24 +21,11 @@ def utility(game: TetrisGame) -> float:
     bumpiness_delta = game.get_bumpiness() - previous_bumpiness
     height_delta = game.get_aggregate_height() - previous_height
     holes_delta = game.get_number_holes() - previous_holes
-    if (scores_delta < 0 or drops_delta < 0 or bumpiness_delta < 0
-       or height_delta < 0):
-        scores_delta = 0
-        previous_score = 0
-        drops_delta = 0
-        previous_drops = 0
-        bumpiness_delta = 0
-        previous_bumpiness = 0
-        height_delta = 0
-        previous_height = 0
-        holes_delta = 0
-        previous_holes = 0
-    else:
-        previous_score = game.get_score()
-        previous_drops = game.get_drops()
-        previous_bumpiness = game.get_bumpiness()
-        previous_height = game.get_aggregate_height()
-        previous_holes = game.get_number_holes()
+    previous_score = game.get_score()
+    previous_drops = game.get_drops()
+    previous_bumpiness = game.get_bumpiness()
+    previous_height = game.get_aggregate_height()
+    previous_holes = game.get_number_holes()
     terms = [1000*scores_delta, 100*drops_delta,
              -10*bumpiness_delta,
              -1*height_delta,
@@ -47,6 +34,9 @@ def utility(game: TetrisGame) -> float:
 
 
 def main() -> None:
+    global previous_score, previous_drops, previous_bumpiness
+    global previous_height, previous_holes
+
     game = TetrisGame(60)
     renderer = Renderer(game)
     renderer.setup()
@@ -78,6 +68,13 @@ def main() -> None:
             if game.is_over():
                 agent.train(len(agent.memory))
                 game.reset()
+
+                previous_score = 0
+                previous_drops = 0
+                previous_bumpiness = 0
+                previous_height = 0
+                previous_holes = 0
+
                 print('***************************')
                 print(f'EPSILON: {agent.epsilon}')
                 print('***************************')
