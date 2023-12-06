@@ -6,6 +6,13 @@ import copy
 import pygame
 
 
+def utility(game: TetrisGame) -> float:
+    terms = [0.9*game.get_score(), 0.034*-game.get_bumpiness(),
+             0.033*-game.get_aggregate_height(),
+             0.033*-game.get_number_holes()]
+    return sum(terms)
+
+
 def main() -> None:
     game = TetrisGame(60)
     renderer = Renderer(game)
@@ -40,7 +47,8 @@ def main() -> None:
                 game.set_next_input(best_action)
                 game.step()
                 renderer.rerender()
-                agent.remember(current_state, best_state, game.get_score(),
+                print(utility(game))
+                agent.remember(current_state, best_state, utility(game),
                                game.is_over())
                 current_state = best_state
 
