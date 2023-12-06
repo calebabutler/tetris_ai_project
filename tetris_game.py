@@ -261,6 +261,7 @@ class TetrisGame:
         Reset the game to the initial state
         '''
         self.successful_rotation = False
+        self.drops = 0
         self.next_input = Input.NONE.value
         self.level = 1
         self.score = 0
@@ -288,6 +289,12 @@ class TetrisGame:
         int.
         '''
         return self.board
+
+    def get_drops(self) -> int:
+        '''
+        Returns the number of drops so far.
+        '''
+        return self.drops
 
     def convert_piece_to_board(self, piece: Piece) -> (bool, np.ndarray):
         '''
@@ -545,6 +552,7 @@ class TetrisGame:
             if occupied_squares >= 3:
                 self.t_spin = True
         # Lock piece
+        self.drops += 1
         _, new_board = self.convert_piece_to_board(self.piece)
         self.combine_boards(self.board, new_board)
         # Line 550/551 Addition made by Charleston Andrews: 12/2/2023

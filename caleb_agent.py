@@ -6,10 +6,43 @@ import copy
 import pygame
 
 
+previous_score = 0
+previous_drops = 0
+previous_bumpiness = 0
+previous_height = 0
+previous_holes = 0
+
+
 def utility(game: TetrisGame) -> float:
-    terms = [0.9*game.get_score(), 0.034*-game.get_bumpiness(),
-             0.033*-game.get_aggregate_height(),
-             0.033*-game.get_number_holes()]
+    global previous_score, previous_drops, previous_bumpiness
+    global previous_height, previous_holes
+    scores_delta = game.get_score() - previous_score
+    drops_delta = game.get_drops() - previous_drops
+    bumpiness_delta = game.get_bumpiness() - previous_bumpiness
+    height_delta = game.get_aggregate_height() - previous_height
+    holes_delta = game.get_number_holes() - previous_holes
+    if (scores_delta < 0 or drops_delta < 0 or bumpiness_delta < 0
+       or height_delta < 0 or holes_delta < 0):
+        scores_delta = 0
+        previous_score = 0
+        drops_delta = 0
+        previous_drops = 0
+        bumpiness_delta = 0
+        previous_bumpiness = 0
+        height_delta = 0
+        previous_height = 0
+        holes_delta = 0
+        previous_holes = 0
+    else:
+        previous_score = game.get_score()
+        previous_drops = game.get_drops()
+        previous_bumpiness = game.get_bumpiness()
+        previous_height = game.get_aggregate_height()
+        previous_holes = game.get_number_holes()
+    terms = [0.89*scores_delta, 0.01*drops_delta,
+             0.034*bumpiness_delta,
+             0.033*height_delta,
+             0.033*holes_delta]
     return sum(terms)
 
 
