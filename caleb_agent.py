@@ -29,7 +29,7 @@ def utility(game: TetrisGame) -> float:
     terms = [1000*scores_delta, 100*drops_delta,
              -1*bumpiness_delta,
              -1*height_delta,
-             -100*holes_delta]
+             -10*holes_delta]
     return sum(terms)
 
 
