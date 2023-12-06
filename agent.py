@@ -106,52 +106,76 @@ def main() -> None:
     game.step()
     renderer.rerender()
     current_state = game.get_board_statistics()
-    steps = 0 
+    steps = 0
+    reset_code = False 
+    reset_inner_loop_1 = False
+    reset_inner_loop_2 = False
     while running:
         next_state = game.get_next_state()
         best_state = agent.select_state(next_state.values())
         best_action = None
-        print("The best state is, ",best_state)
-        for action, state in next_state.items():
-            if state == best_state:
-                best_action = action
-                break
-        print("The best action is ", best_action)
 
-        while(game.get_current_piece().rotation != best_action[1]):
-            game.set_next_input(Input.C_ROTATE.value)
-            game.step()
-            renderer.rerender()
-            #time.sleep(1)
-        
-        while(game.get_current_piece().position[0] != best_action[0]):
-            if(best_action[0] < game.get_current_piece().position[0]):
-                game.set_next_input(Input.MOVE_LEFT.value)
-            else:
-                game.set_next_input(Input.MOVE_RIGHT.value)
-            game.step()
-            renderer.rerender()
-            #time.sleep(1)
-        
-        game.set_next_input(Input.HARD_DROP.value)
-        game.step()
-        renderer.rerender()
-
-        reward = game.get_score()
-        done = game.is_over()
-
-        agent.remember(current_state,next_state[best_action],reward,done)
-        current_state = next_state[best_action]
-        scores.append(game.get_score())
-        steps += 1
-        if(steps == 33):
-            steps = 0
-            agent.train(32)
-        game.step()
-        renderer.rerender()
-        #time.sleep(1)
         if(game.is_over()):
+            reset_code = True
+        
+        if (reset_code == True):
+            agent.train(len(agent.memory))
             game.reset()
+            
+        elif(reset_code == False):
+            print("The best state is, ",best_state)
+            for action, state in next_state.items():
+                if state == best_state:
+                    best_action = action
+                    break
+            print("The best action is ", best_action)
+
+            while(game.get_current_piece().rotation != best_action[1]):
+                game.set_next_input(Input.C_ROTATE.value)
+                game.step()
+                renderer.rerender()
+                if(game.is_over()):
+                    reset_inner_loop_1 = True
+                    break
+            if(reset_inner_loop_1 == False):
+                while(game.get_current_piece().position[0] != best_action[0]):
+                    if(best_action[0] < game.get_current_piece().position[0]):
+                        game.set_next_input(Input.MOVE_LEFT.value)
+                    else:
+                        game.set_next_input(Input.MOVE_RIGHT.value)
+                    game.step()
+                    renderer.rerender()
+                    if(game.is_over()):
+                        reset_inner_loop_2 = True
+                        break
+            if(reset_inner_loop_1 == True or reset_inner_loop_2 == True):
+                game.reset()
+            if(reset_inner_loop_1 == False and reset_inner_loop_2 == False):
+                game.set_next_input(Input.HARD_DROP.value)
+                game.step()
+                renderer.rerender()
+                reward = game.get_score()
+                done = game.is_over()
+                if(not(done)):
+                    agent.remember(current_state,next_state[best_action],reward,done)
+                    current_state = next_state[best_action]
+                    scores.append(game.get_score())
+                    #steps += 1
+                    #if(steps == 33):
+                    #    steps = 0
+                    #    
+                    game.step()
+                    renderer.rerender()
+                    #time.sleep(1)
+                    if(game.is_over()):
+                        agent.train(len(agent.memory))
+                        game.reset()
+                else:
+                    agent.train(len(agent.memory))
+                    game.reset()
+            reset_inner_loop_1 = False
+            reset_inner_loop_2 = False
+        reset_code = False
 
 if __name__ == '__main__':
     main()
