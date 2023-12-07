@@ -24,7 +24,7 @@ class DQNAgent:
         self.memory = deque(maxlen=MAX_MEMORY) #Storing memories that can be replayed to train the Deep Q Network
         self.gamma = 0.95 # The discount factor that discounts prospective rewards in future steps
         self.epsilon = 1.0 # The factor that determins what portion of agents move are random
-        self.epsilon_decay = 0.05 # Exploration rate that decays to allow agent to use info it learned
+        self.epsilon_decay = 0.005 # Exploration rate that decays to allow agent to use info it learned
         self.epsilon_min = 0.01 # Minimmum for exploration rate given its 0.01 the agent only explores 1% of time and uses exp other 99%
         self.learning_rate = 0.001 #
         self.model = self._build_model()
