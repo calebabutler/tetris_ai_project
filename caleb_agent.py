@@ -26,10 +26,10 @@ def utility(game: TetrisGame) -> float:
     previous_bumpiness = game.get_bumpiness()
     previous_height = game.get_aggregate_height()
     previous_holes = game.get_number_holes()
-    terms = [1000*scores_delta, 100*drops_delta,
+    terms = [1*scores_delta, 1*drops_delta,
              -1*bumpiness_delta,
              -1*height_delta,
-             -10*holes_delta]
+             -1*holes_delta]
     return sum(terms)
 
 
