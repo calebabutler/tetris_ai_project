@@ -28,6 +28,14 @@ import numpy as np
 import random
 
 
+w_1 = 1
+w_2 = 1
+w_3 = 1
+last_utility = 0
+utility_total = 0
+games = 0
+
+
 def move(game: TetrisGame, absolute_position: int, rotation: int) -> None:
     last_position = 100
     current_position = game.get_current_piece().position[0]
@@ -68,6 +76,7 @@ def get_utility(game: TetrisGame, position: int, rotation: int) -> float:
 
     new_game = copy.deepcopy(game)
     move(new_game, position, rotation)
+
     new_bumpiness = new_game.get_bumpiness()
     new_holes = new_game.get_number_holes()
     new_height = new_game.get_aggregate_height()
@@ -78,12 +87,13 @@ def get_utility(game: TetrisGame, position: int, rotation: int) -> float:
     height_delta = new_height - old_height
     score_delta = new_score - old_score
 
-    utility = (1000 * score_delta - 2 * holes_delta - bumpiness_delta
-               - height_delta)
+    utility = (1000 * score_delta - w_1 * holes_delta - w_2 * bumpiness_delta
+               - w_3 * height_delta)
     return utility
 
 
 def get_next_move(game: TetrisGame) -> (int, int):
+    global utility_total
     next_actions = []
     for i in range(11):
         for j in range(4):
@@ -98,28 +108,51 @@ def get_next_move(game: TetrisGame) -> (int, int):
         if utility > max_utility:
             max_utility = utility
             best_action = action
+    utility_total += max_utility
     return best_action
 
 
 def main() -> None:
+    global w_1, w_2, w_3, last_utility, games
     game = TetrisGame(60)
     renderer = Renderer(game)
     renderer.setup()
     running = True
 
-    clock = pygame.time.Clock()
+    old_w1 = 1
+    old_w2 = 1
+    old_w3 = 1
+
+    rendering_ticks = 0
+    render_frame_rate = 60
 
     while running:
         game.step()
-        renderer.rerender()
+        if pygame.time.get_ticks() > rendering_ticks:
+            renderer.rerender()
+            rendering_ticks += 1000 // render_frame_rate
         position, rotation = get_next_move(game)
         move(game, position, rotation)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
         if game.is_over():
+            games += 1
             game.reset()
-        clock.tick(game.get_frame_rate())
+            if games >= 5:
+                if utility_total <= last_utility:
+                    w_1 = old_w1
+                    w_2 = old_w2
+                    w_3 = old_w3
+                last_utility = utility_total
+                old_w1 = w_1
+                old_w2 = w_2
+                old_w3 = w_3
+                w_1 = max(1, w_1 + random.randint(-1, 1))
+                w_2 = max(1, w_2 + random.randint(-1, 1))
+                w_3 = max(1, w_3 + random.randint(-1, 1))
+                print((w_1, w_2, w_3))
+                games = 0
 
 
 if __name__ == '__main__':
