@@ -134,7 +134,7 @@ def main() -> None:
             games += 1
             score_total += game.get_score()
             game.reset()
-            if games >= 5:
+            if games >= 12:
                 score_table[(w_1, w_2, w_3)] = score_total
                 new_weights = max(score_table, key=score_table.get)
                 while (w_1, w_2, w_3) in score_table:
