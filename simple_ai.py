@@ -143,6 +143,7 @@ def main() -> None:
                     w_3 = max(1, new_weights[2] + random.randint(-1, 1))
                 print((w_1, w_2, w_3))
                 games = 0
+                score_total = 0
 
 
 if __name__ == '__main__':
