@@ -120,6 +120,8 @@ def main() -> None:
     rendering_ticks = 0
     render_frame_rate = 60
 
+    print((w_1, w_2, w_3))
+
     while running:
         game.step()
         if pygame.time.get_ticks() > rendering_ticks:
@@ -138,9 +140,9 @@ def main() -> None:
                 score_table[(w_1, w_2, w_3)] = score_total
                 new_weights = max(score_table, key=score_table.get)
                 while (w_1, w_2, w_3) in score_table:
-                    w_1 = max(1, new_weights[0] + random.randint(-1, 1))
-                    w_2 = max(1, new_weights[1] + random.randint(-1, 1))
-                    w_3 = max(1, new_weights[2] + random.randint(-1, 1))
+                    w_1 = max(1, new_weights[0] + random.randint(-10, 10))
+                    w_2 = max(1, new_weights[1] + random.randint(-10, 10))
+                    w_3 = max(1, new_weights[2] + random.randint(-10, 10))
                 print((w_1, w_2, w_3))
                 games = 0
                 score_total = 0
