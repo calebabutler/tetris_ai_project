@@ -24,7 +24,7 @@ class DQNAgent:
         self.memory = deque(maxlen=MAX_MEMORY) #Storing memories that can be replayed to train the Deep Q Network
         self.gamma = 0.95 # The discount factor that discounts prospective rewards in future steps
         self.epsilon = 1.0 # The factor that determins what portion of agents move are random
-        self.epsilon_decay = 0.005 # Exploration rate that decays to allow agent to use info it learned
+        self.epsilon_decay = 0.05 # Exploration rate that decays to allow agent to use info it learned
         self.epsilon_min = 0.01 # Minimmum for exploration rate given its 0.01 the agent only explores 1% of time and uses exp other 99%
         self.learning_rate = 0.001 #
         self.model = self._build_model()
@@ -50,7 +50,7 @@ class DQNAgent:
     def predict_val(self,state):
         return self.model.predict(state)[0]
     
-    def select_state(self, states, magic=False):
+    def select_state(self, states):
         max_value = None
  
         if random.random() <= self.epsilon:
@@ -68,12 +68,8 @@ class DQNAgent:
                     best_state = state
                 else:
                     val = self.predict_val(np.reshape(state,[1,self.state_size]))
-                if magic:
-                    for i in range(0,2): temp_val_sum = val[i] + val[i+1]
-                    for i in range(0,2): temp_max_val_sum = max_val[i] + max_val[i+1]
-                else:
-                    for i in range(0,4): temp_val_sum = val[i] + val[i+1]
-                    for i in range(0,4): temp_max_val_sum = max_val[i] + max_val[i+1]
+                for i in range(0,4): temp_val_sum = val[i] + val[i+1]
+                for i in range(0,4): temp_max_val_sum = max_val[i] + max_val[i+1]
                 if (count > 0 and temp_val_sum > temp_max_val_sum):
                     max_val = val
                     best_state = state

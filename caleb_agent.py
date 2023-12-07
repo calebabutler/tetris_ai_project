@@ -33,6 +33,18 @@ def utility(game: TetrisGame) -> float:
     return sum(terms)
 
 
+def get_state(game: TetrisGame) -> np.ndarray:
+    state = np.zeros(21, dtype=int)
+    board = game.get_simple_board()
+    for i, row in enumerate(board):
+        n = 0
+        for j, item in enumerate(row):
+            if item != 0:
+                n += 2**j
+        state[i] = n
+    return state
+
+
 def main() -> None:
     global previous_score, previous_drops, previous_bumpiness
     global previous_height, previous_holes
@@ -40,11 +52,11 @@ def main() -> None:
     game = TetrisGame(60)
     renderer = Renderer(game)
     renderer.setup()
-    agent = DQNAgent(210, 3)
+    agent = DQNAgent(21, 7)
     running = True
     game.step()
     renderer.rerender()
-    current_state = game.get_simple_board().flatten()
+    current_state = get_state(game)
 
     rendering_ticks = 0
     render_frame_rate = 60
@@ -62,8 +74,8 @@ def main() -> None:
             new_game = copy.deepcopy(game)
             new_game.set_next_input(action)
             new_game.step()
-            next_states.append(new_game.get_simple_board().flatten())
-            best_state = agent.select_state(next_states, magic=True)
+            next_states.append(get_state(new_game))
+            best_state = agent.select_state(next_states)
 
             if game.is_over():
                 agent.train(len(agent.memory))
