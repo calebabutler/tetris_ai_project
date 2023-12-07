@@ -25,6 +25,7 @@ from renderer import Renderer
 import pygame
 import copy
 import numpy as np
+import random
 
 
 def move(game: TetrisGame, absolute_position: int, rotation: int) -> None:
@@ -59,33 +60,41 @@ def move(game: TetrisGame, absolute_position: int, rotation: int) -> None:
     game.step()
 
 
-def get_next_move(game: TetrisGame) -> (int, int):
+def get_utility(game: TetrisGame, position: int, rotation: int) -> float:
     old_bumpiness = game.get_bumpiness()
     old_holes = game.get_number_holes()
     old_height = game.get_aggregate_height()
     old_score = game.get_score()
 
+    new_game = copy.deepcopy(game)
+    move(new_game, position, rotation)
+    new_bumpiness = new_game.get_bumpiness()
+    new_holes = new_game.get_number_holes()
+    new_height = new_game.get_aggregate_height()
+    new_score = new_game.get_score()
+
+    bumpiness_delta = new_bumpiness - old_bumpiness
+    holes_delta = new_holes - old_holes
+    height_delta = new_height - old_height
+    score_delta = new_score - old_score
+
+    utility = (1000 * score_delta - 2 * holes_delta - bumpiness_delta
+               - height_delta)
+    return utility
+
+
+def get_next_move(game: TetrisGame) -> (int, int):
     next_actions = []
     for i in range(11):
         for j in range(4):
             next_actions.append((i, j))
 
+    # Don't favor any particular move when utility is equal
+    random.shuffle(next_actions)
+
     max_utility = -np.inf
     for action in next_actions:
-        new_game = copy.deepcopy(game)
-        move(new_game, action[0], action[1])
-        new_bumpiness = new_game.get_bumpiness()
-        new_holes = new_game.get_number_holes()
-        new_height = new_game.get_aggregate_height()
-        new_score = new_game.get_score()
-
-        bumpiness_delta = new_bumpiness - old_bumpiness
-        holes_delta = new_holes - old_holes
-        height_delta = new_height - old_height
-        score_delta = new_score - old_score
-
-        utility = (1000 * score_delta - 2 * holes_delta - bumpiness_delta
-                   - height_delta)
+        utility = get_utility(game, action[0], action[1])
         if utility > max_utility:
             max_utility = utility
             best_action = action

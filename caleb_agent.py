@@ -1,58 +1,30 @@
 from tetris_game import TetrisGame
 from renderer import Renderer
 from agent import DQNAgent
+from simple_ai import move, get_utility
 import numpy as np
 import copy
 import pygame
 
 
-previous_score = 0
-previous_drops = 0
-previous_bumpiness = 0
-previous_height = 0
-previous_holes = 0
-
-
-def utility(game: TetrisGame) -> float:
-    global previous_score, previous_drops, previous_bumpiness
-    global previous_height, previous_holes
-    scores_delta = game.get_score() - previous_score
-    drops_delta = game.get_drops() - previous_drops
-    bumpiness_delta = game.get_bumpiness() - previous_bumpiness
-    height_delta = game.get_aggregate_height() - previous_height
-    holes_delta = game.get_number_holes() - previous_holes
-    previous_score = game.get_score()
-    previous_drops = game.get_drops()
-    previous_bumpiness = game.get_bumpiness()
-    previous_height = game.get_aggregate_height()
-    previous_holes = game.get_number_holes()
-    terms = [1000*scores_delta, 10*drops_delta,
-             -1*bumpiness_delta,
-             -1*height_delta,
-             -100*holes_delta]
-    return sum(terms)
-
-
 def get_state(game: TetrisGame) -> np.ndarray:
-    state = np.zeros(21, dtype=int)
-    board = game.get_simple_board()
+    state = np.zeros(41, dtype=int)
+    state[0] = game.get_current_piece().kind
+    board = game.get_board()
     for i, row in enumerate(board):
         n = 0
         for j, item in enumerate(row):
             if item != 0:
                 n += 2**j
-        state[i] = n
+        state[i + 1] = n
     return state
 
 
 def main() -> None:
-    global previous_score, previous_drops, previous_bumpiness
-    global previous_height, previous_holes
-
     game = TetrisGame(60)
     renderer = Renderer(game)
     renderer.setup()
-    agent = DQNAgent(21, 7)
+    agent = DQNAgent(41, 44)
     running = True
     game.step()
     renderer.rerender()
@@ -70,39 +42,38 @@ def main() -> None:
             rendering_ticks += 1000 // render_frame_rate
 
         next_states = []
-        for action in range(7):
+        for action in range(44):
+            position = action // 4
+            rotation = action % 4
             new_game = copy.deepcopy(game)
-            new_game.set_next_input(action)
+            move(new_game, position, rotation)
             new_game.step()
             next_states.append(get_state(new_game))
-            best_state = agent.select_state(next_states)
 
-            if game.is_over():
-                agent.train(len(agent.memory))
-                game.reset()
+        best_state = agent.select_state(next_states)
 
-                previous_score = 0
-                previous_drops = 0
-                previous_bumpiness = 0
-                previous_height = 0
-                previous_holes = 0
+        if game.is_over():
+            agent.train(len(agent.memory))
+            game.reset()
 
-                print('***************************')
-                print(f'EPSILON: {agent.epsilon}')
-                print('***************************')
-            else:
-                # print("The best state is, ", best_state)
-                for i, state in enumerate(next_states):
-                    if np.all(state == best_state):
-                        best_action = i
-                        break
-                # print("The best action is ", best_action)
-                game.set_next_input(best_action)
-                game.step()
-                # print(utility(game))
-                agent.remember(current_state, best_state, utility(game),
-                               game.is_over())
-                current_state = best_state
+            print('***************************')
+            print(f'EPSILON: {agent.epsilon}')
+            print('***************************')
+        else:
+            # print("The best state is, ", best_state)
+            for i, state in enumerate(next_states):
+                if np.all(state == best_state):
+                    best_action = i
+                    break
+            # print("The best action is ", best_action)
+            # print(utility(game))
+            agent.remember(current_state, best_state,
+                           get_utility(game, best_action // 4,
+                                       best_action % 4),
+                           game.is_over())
+            move(game, best_action // 4, best_action % 4)
+            game.step()
+            current_state = best_state
 
 
 if __name__ == '__main__':
