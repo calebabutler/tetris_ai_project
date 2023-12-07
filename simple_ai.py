@@ -31,8 +31,8 @@ import random
 w_1 = 1
 w_2 = 1
 w_3 = 1
-utility_table = {}
-utility_total = 0
+score_table = {}
+score_total = 0
 games = 0
 
 
@@ -93,7 +93,6 @@ def get_utility(game: TetrisGame, position: int, rotation: int) -> float:
 
 
 def get_next_move(game: TetrisGame) -> (int, int):
-    global utility_total
     next_actions = []
     for i in range(11):
         for j in range(4):
@@ -108,12 +107,11 @@ def get_next_move(game: TetrisGame) -> (int, int):
         if utility > max_utility:
             max_utility = utility
             best_action = action
-    utility_total += max_utility
     return best_action
 
 
 def main() -> None:
-    global w_1, w_2, w_3, games
+    global w_1, w_2, w_3, games, score_total, score_table
     game = TetrisGame(60)
     renderer = Renderer(game)
     renderer.setup()
@@ -134,11 +132,12 @@ def main() -> None:
                 running = False
         if game.is_over():
             games += 1
+            score_total += game.get_score()
             game.reset()
             if games >= 5:
-                utility_table[(w_1, w_2, w_3)] = utility_total
-                new_weights = max(utility_table, key=utility_table.get)
-                while (w_1, w_2, w_3) in utility_table:
+                score_table[(w_1, w_2, w_3)] = score_total
+                new_weights = max(score_table, key=score_table.get)
+                while (w_1, w_2, w_3) in score_table:
                     w_1 = max(1, new_weights[0] + random.randint(-1, 1))
                     w_2 = max(1, new_weights[1] + random.randint(-1, 1))
                     w_3 = max(1, new_weights[2] + random.randint(-1, 1))
