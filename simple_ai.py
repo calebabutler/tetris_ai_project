@@ -144,6 +144,8 @@ def main() -> None:
                     w_2 = max(1, new_weights[1] + random.randint(-10, 10))
                     w_3 = max(1, new_weights[2] + random.randint(-10, 10))
                 print((w_1, w_2, w_3))
+                print(f'Best weights: {new_weights}')
+                print(f'With average score: {score_table[new_weights] / 12}')
                 games = 0
                 score_total = 0
 
