@@ -28,9 +28,12 @@ import numpy as np
 import random
 
 
-w_1 = 1
+# Starting weights
+# Currently best weights found so far
+w_1 = 9
 w_2 = 1
-w_3 = 1
+w_3 = 10
+
 score_table = {}
 score_total = 0
 games = 0
