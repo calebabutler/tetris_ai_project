@@ -37,6 +37,15 @@ games = 0
 
 
 def move(game: TetrisGame, absolute_position: int, rotation: int) -> None:
+    last_rotation = 100
+    current_rotation = game.get_current_piece().rotation
+    while (game.get_current_piece().rotation != rotation
+           and last_rotation != current_rotation):
+        game.set_next_input(Input.C_ROTATE.value)
+        game.step()
+        last_rotation = current_rotation
+        current_rotation = game.get_current_piece().rotation
+
     last_position = 100
     current_position = game.get_current_piece().position[0]
     while (current_position > absolute_position
@@ -54,15 +63,6 @@ def move(game: TetrisGame, absolute_position: int, rotation: int) -> None:
         game.step()
         last_position = current_position
         current_position = game.get_current_piece().position[0]
-
-    last_rotation = 100
-    current_rotation = game.get_current_piece().rotation
-    while (game.get_current_piece().rotation != rotation
-           and last_rotation != current_rotation):
-        game.set_next_input(Input.C_ROTATE.value)
-        game.step()
-        last_rotation = current_rotation
-        current_rotation = game.get_current_piece().rotation
 
     game.set_next_input(Input.HARD_DROP.value)
     game.step()
