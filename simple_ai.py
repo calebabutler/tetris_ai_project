@@ -72,10 +72,6 @@ def move(game: TetrisGame, absolute_position: int, rotation: int,
 
     game.set_next_input(Input.HARD_DROP.value)
     game.step()
-    if renderer is not None:
-        renderer.rerender()
-        if clock is not None:
-            clock.tick(game.get_frame_rate())
 
 
 def get_utility(game: TetrisGame, position: int, rotation: int, w_1: int,
@@ -144,6 +140,8 @@ def main(args: [str]) -> None:
 
     while running:
         position, rotation = get_next_move(game, w_1, w_2, w_3)
+        renderer.rerender()
+        clock.tick(game.get_frame_rate())
         move(game, position, rotation, renderer, clock)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
