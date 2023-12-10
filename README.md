@@ -31,7 +31,7 @@ For another AI that uses the same technology as agent, but a slightly different 
 
     python3 caleb_agent.py
 
-For a simple AI that does not use machine learning or any complex techniques, but simply makes decisions based on the calculations for bumpiness, aggregate height, and amount of holes used by the previous AI (this AI is surprisingly fast and successful given how simple it is), run this program:
+For a simple AI that does not use machine learning or any complex techniques, but simply makes decisions based on the calculations for bumpiness, aggregate height, and amount of holes used by the previous AIs (this AI is surprisingly fast and successful given how simple it is), run this program:
 
     python3 simple_ai.py
 
