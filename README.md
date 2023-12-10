@@ -1,6 +1,6 @@
 # Tetris AI
 
-An engine for playing Tetris, as well as several different AIs that can play the game on this engine.
+Two AIs that can play Tetris reasonably well, as well as a Tetris engine that these AIs use to train/test.
 
 ![Brief demo of the game.](https://github.com/calebabutler/tetris_ai_project/blob/main/photos/demo.gif)
 
